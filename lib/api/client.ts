@@ -1,14 +1,16 @@
 export const apiFetch = async (url: string) => {
-  const res = await fetch(url);
+  const res = await fetch(url, {
+    credentials: "include",
+  });
 
-  if (res.status === 401) {
-    throw new Error("unauthorized");
-  }
+  const data = await res.json();
 
   if (!res.ok) {
-    const text = await res.text();
-    throw new Error(`api error: ${text}`);
+    const error: any = new Error("API Error");
+    error.status = res.status;
+    error.info = data;
+    throw error;
   }
 
-  return res.json();
+  return data;
 };
