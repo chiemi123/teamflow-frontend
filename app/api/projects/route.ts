@@ -1,20 +1,35 @@
+import { cookies } from "next/headers";
+
 export async function GET() {
   try {
-    const res = await fetch("http://172.24.0.1/api/projects", {
+    const token = (await cookies()).get("token")?.value;
+
+    // ❗ 未ログイン対策
+    if (!token) {
+      return Response.json({ message: "未ログイン" }, { status: 401 });
+    }
+
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/projects`, {
       headers: {
-        Authorization: `Bearer ${process.env.API_TOKEN}`,
+        Authorization: `Bearer ${token}`,
         Accept: "application/json",
       },
     });
 
-    const text = await res.text();
-    console.log("Laravel response:", text);
+    // ❗ Laravelエラーも拾う
+    if (!res.ok) {
+      return Response.json(
+        { message: "Laravel APIエラー" },
+        { status: res.status },
+      );
+    }
 
-    const data = JSON.parse(text);
+    const data = await res.json();
 
     return Response.json(data);
   } catch (error) {
     console.error("API error:", error);
+
     return Response.json({ error: "API取得失敗" }, { status: 500 });
   }
 }
