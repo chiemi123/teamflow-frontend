@@ -1,7 +1,7 @@
 "use client";
 
-import Link from "next/link";
 import { getMe } from "@/lib/api/user";
+import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import useSWR from "swr";
 
@@ -22,12 +22,16 @@ export default function Header() {
   );
 
   if (isLoginPage) return null;
-
-  if (error?.message === "unauthorized") {
-    return null;
-  }
-
   if (isLoading) return null;
+  if (error) {
+    if ((error as any).status === 401) {
+      router.push("/login");
+      return null;
+    }
+
+    console.error(error);
+    return <div>エラーが発生しました</div>;
+  }
 
   const handleLogout = async () => {
     await fetch("/api/logout", { method: "POST" });
