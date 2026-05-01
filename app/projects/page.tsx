@@ -2,6 +2,7 @@
 
 import { apiFetch } from "@/lib/api/client";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import useSWR from "swr";
 
 type Project = {
@@ -17,21 +18,38 @@ export default function ProjectsPage() {
   const router = useRouter();
 
   const { data, error, isLoading } = useSWR<ProjectResponse>(
-    "/api/projects",
+    `${process.env.NEXT_PUBLIC_API_URL}/api/projects`,
     apiFetch,
+    {
+      revalidateOnFocus: false,
+      shouldRetryOnError: false,
+    },
   );
 
-  if (error?.message === "unauthorized") {
-    router.push("/login");
+  useEffect(() => {
+    if (error && (error as any).status === 401) {
+      router.replace("/login");
+    }
+  }, [error, router]);
+
+  if (isLoading) return <p>読み込み中...</p>;
+
+  if (error && (error as any).status === 401) {
     return null;
   }
 
-  if (isLoading) return <p>読み込み中...</p>;
-  if (error) return <p>エラー発生</p>;
+  if (error) {
+    console.error(error);
+    return <p>エラー発生</p>;
+  }
 
   const handleLogout = async () => {
-    await fetch("/api/logout", { method: "POST" });
-    router.push("/login");
+    await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/logout`, {
+      method: "POST",
+      credentials: "include",
+    });
+
+    window.location.href = "/login";
   };
 
   return (
