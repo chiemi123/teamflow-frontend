@@ -1,26 +1,25 @@
 // /projects/page.tsx
 "use client";
 
+import EmptyState from "@/components/ui/EmptyState";
+import ErrorState from "@/components/ui/ErrorState";
+import Loading from "@/components/ui/Loading";
 import { getProjects } from "@/lib/api/projects";
 import { useUser } from "@/lib/hooks/useUser";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 import useSWR from "swr";
+import ProjectCard from "./components/ProjectCard";
 
 export default function ProjectsPage() {
   const router = useRouter();
-  const { user, isLoading, isAuthenticated, errorMessage } = useUser();
-
-  console.log("⑨ProjectsPage - User:", user);
-  console.log("⑪ProjectsPage - isLoading:", isLoading);
-  console.log("⑫ProjectsPage - Error:", errorMessage);
+  const { user, isLoading, isAuthenticated } = useUser();
 
   useEffect(() => {
     if (isLoading) return;
 
     // 認証されていない場合、ログインページにリダイレクト
     if (!isAuthenticated) {
-      console.log("⑭ProjectsPage - Not authenticated, redirecting...");
       router.push("/login");
     }
   }, [isAuthenticated, isLoading, router]);
@@ -36,36 +35,35 @@ export default function ProjectsPage() {
   );
 
   if (isLoading) {
-    console.log("⑬ProjectsPage - Loading...");
-    return <div>読み込み中...</div>;
+    return <Loading message="認証情報を確認中..." />;
   }
 
   if (!user) return null;
 
   // プロジェクトデータが読み込み中の時
   if (projectLoading) {
-    console.log("⑮ProjectsPage - Loading projects...");
-    return <div>プロジェクト読み込み中...</div>;
+    return <Loading message="プロジェクト読み込み中..." />;
   }
+
+  const projects = data?.data ?? [];
 
   // プロジェクトデータ取得中にエラーが発生した場合
   if (error) {
-    console.error("⑯ProjectsPage - Error fetching projects:", error);
-    return <div>プロジェクトの取得に失敗しました。</div>;
+    return <ErrorState message="プロジェクトの取得に失敗しました。" />;
   }
 
   return (
-    <div>
-      <h1>プロジェクト一覧</h1>
-      {/* プロジェクトデータを表示 */}
-      {data?.data?.length ? (
-        <ul>
-          {data.data.map((project) => (
-            <li key={project.id}>{project.name}</li>
-          ))}
-        </ul>
+    <div className="p-8">
+      <h1 className="text-2xl font-bold mb-6">プロジェクト一覧</h1>
+
+      {projects.length === 0 ? (
+        <EmptyState message="プロジェクトがありません" />
       ) : (
-        <p>プロジェクトがありません</p>
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {projects.map((project) => (
+            <ProjectCard key={project.id} name={project.name} />
+          ))}
+        </div>
       )}
     </div>
   );
