@@ -1,14 +1,22 @@
 "use client";
 
-import { useRouter } from "next/navigation";
+import { useUser } from "@/lib/hooks/useUser";
 import { useEffect, useState } from "react";
-
-console.log("ページ読み込み");
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const router = useRouter();
+  const { user, mutate } = useUser();
+  //const router = useRouter();
+
+  useEffect(() => {
+    console.error("user状態", user);
+
+    if (user && typeof user === "object" && "id" in user) {
+      console.error("条件一致：/projectsにリダイレクト");
+      window.location.href = "/projects"; // userが存在したら/projectsに遷移
+    }
+  }, [user]);
 
   // handleLogin関数をコンポーネント内で定義
   const handleLogin = async () => {
@@ -75,19 +83,17 @@ export default function LoginPage() {
         return;
       }
 
+      // ログイン成功後、isAuthenticated を true に設定
       console.log("⑥ success → redirect");
-      router.push("/projects");
+      // 認証状態を更新する
+      //setIsAuthenticated(true);
+      console.log("⑦ ok");
+      await mutate();
     } catch (error) {
       console.error("ログインエラー:", error);
       alert("ログイン失敗");
     }
   };
-
-  // useEffectでページが読み込まれた際にhandleLoginを呼び出す
-  useEffect(() => {
-    console.log("ページ読み込み - useEffect");
-    handleLogin();
-  }, []); // 空の依存配列でページ読み込み時に1回だけ実行
 
   return (
     <div>
@@ -107,7 +113,7 @@ export default function LoginPage() {
         type="button"
         onClick={() => {
           console.log("クリックされた"); // ボタンがクリックされたことを確認
-          handleLogin();
+          handleLogin(); // handleLogin をボタンクリック時にのみ実行
         }}
       >
         ログイン
