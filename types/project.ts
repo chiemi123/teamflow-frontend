@@ -14,3 +14,7 @@ export type Project = {
 export type ProjectResponse = {
   data: Project[];
 };
+
+export type SingleProjectResponse = {
+  data: Project;
+};
