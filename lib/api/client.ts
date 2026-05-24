@@ -78,6 +78,11 @@ export const apiFetch = async (url: string, options: RequestInit = {}) => {
       throw new Error("API request failed"); // エラーをスロー
     }
 
+    // 🔹 ここを修正：204 No Content の場合は null を返す
+    if (res.status === 204) {
+      return null;
+    }
+
     // レスポンスがOKの場合、JSONレスポンスを処理
     const data = await res.json(); // JSONレスポンスを処理
 
