@@ -1,0 +1,79 @@
+"use client";
+
+import EmptyState from "@/components/ui/EmptyState";
+import ErrorState from "@/components/ui/ErrorState";
+import Loading from "@/components/ui/Loading";
+import { getTasks } from "@/lib/api/tasks";
+import { useUser } from "@/lib/hooks/useUser";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
+import useSWR from "swr";
+import TaskCard from "./components/TaskCard";
+
+export default function TasksPage() {
+  const router = useRouter();
+  const { user, isLoading, isAuthenticated } = useUser();
+
+  useEffect(() => {
+    if (isLoading) return;
+
+    if (!isAuthenticated) {
+      router.push("/login");
+    }
+  }, [isAuthenticated, isLoading, router]);
+
+  const {
+    data,
+    error,
+    isLoading: taskLoading,
+  } = useSWR(isAuthenticated ? "/api/tasks" : null, getTasks);
+
+  if (isLoading) {
+    return <Loading message="認証情報を確認中..." />;
+  }
+
+  if (!user) return null;
+
+  if (taskLoading) {
+    return <Loading message="タスク読み込み中..." />;
+  }
+
+  if (error) {
+    return <ErrorState message="タスクの取得に失敗しました。" />;
+  }
+
+  const tasks = data?.data ?? [];
+
+  return (
+    <div className="p-8">
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">タスク一覧</h1>
+
+        <Link
+          href="/tasks/create"
+          className="rounded bg-green-500 px-4 py-2 text-white"
+        >
+          新規作成
+        </Link>
+      </div>
+
+      {tasks.length === 0 ? (
+        <EmptyState message="タスクがありません" />
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {tasks.map((task) => (
+            <TaskCard
+              key={task.id}
+              id={task.id}
+              title={task.title}
+              description={task.description}
+              task_status={task.task_status}
+              assigned_user={task.assigned_user}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
