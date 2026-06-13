@@ -1,55 +1,83 @@
 // app/tasks/components/TaskCard.tsx
 
 import { apiFetch } from "@/lib/api/client";
-import { Task } from "@/types/task";
+import { updateTaskStatus } from "@/lib/api/tasks";
+import { Task, TaskStatus } from "@/types/task";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 import { mutate } from "swr";
 
-type TaskCardProps = Pick<
-  Task,
-  "id" | "title" | "description" | "task_status" | "assigned_user"
->;
+type TaskCardProps = {
+  task: Task;
+  taskStatuses: TaskStatus[];
+};
 
-export default function TaskCard({
-  id,
-  title,
-  description,
-  task_status,
-  assigned_user,
-}: TaskCardProps) {
+export default function TaskCard({ task, taskStatuses }: TaskCardProps) {
   const router = useRouter();
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const handleDelete = async () => {
     if (!confirm("本当に削除しますか？")) return;
 
-    await apiFetch(`/api/tasks/${id}`, { method: "DELETE" });
-    mutate("/api/tasks");
+    await apiFetch(`/api/tasks/${task.id}`, { method: "DELETE" });
+    await mutate("/api/tasks");
+  };
+
+  const handleStatusChange = async (statusId: number) => {
+    try {
+      setIsUpdatingStatus(true);
+
+      await updateTaskStatus(task.id, statusId);
+
+      await mutate("/api/tasks");
+    } finally {
+      setIsUpdatingStatus(false);
+    }
   };
 
   return (
     <div className="rounded-lg border p-4 shadow-sm">
       <div className="flex items-start justify-between gap-4">
-        <h2 className="text-lg font-bold">{title}</h2>
+        <h2 className="text-lg font-bold">{task.title}</h2>
 
-        {task_status && (
+        {task.task_status && (
           <span className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">
-            {task_status.name}
+            {task.task_status.name}
           </span>
         )}
       </div>
 
-      {description && (
-        <p className="mt-2 text-sm text-gray-500">{description}</p>
+      {task.description && (
+        <p className="mt-2 text-sm text-gray-500">{task.description}</p>
       )}
 
       <div className="mt-3 text-sm text-gray-500">
-        担当者：{assigned_user?.name ?? "未設定"}
+        担当者：{task.assigned_user?.name ?? "未設定"}
+      </div>
+
+      <div className="mt-3">
+        <label className="mb-1 block text-sm font-medium text-gray-700">
+          ステータス
+        </label>
+
+        <select
+          className="w-full rounded border px-3 py-2 text-sm"
+          value={task.status_id}
+          disabled={isUpdatingStatus}
+          onChange={(e) => handleStatusChange(Number(e.target.value))}
+        >
+          {taskStatuses.map((status) => (
+            <option key={status.id} value={status.id}>
+              {status.name}
+            </option>
+          ))}
+        </select>
       </div>
 
       <div className="mt-4 flex gap-2">
         <button
           className="rounded bg-blue-500 px-3 py-1 text-white"
-          onClick={() => router.push(`/tasks/${id}/edit`)}
+          onClick={() => router.push(`/tasks/${task.id}/edit`)}
         >
           編集
         </button>

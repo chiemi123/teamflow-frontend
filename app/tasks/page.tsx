@@ -1,9 +1,10 @@
+//app/tasks/page.tsx
 "use client";
 
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
 import Loading from "@/components/ui/Loading";
-import { getTasks } from "@/lib/api/tasks";
+import { getTasks, getTaskStatuses } from "@/lib/api/tasks";
 import { useUser } from "@/lib/hooks/useUser";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -29,13 +30,19 @@ export default function TasksPage() {
     isLoading: taskLoading,
   } = useSWR(isAuthenticated ? "/api/tasks" : null, getTasks);
 
+  const {
+    data: statusData,
+    error: statusError,
+    isLoading: statusLoading,
+  } = useSWR(isAuthenticated ? "/api/task-statuses" : null, getTaskStatuses);
+
   if (isLoading) {
     return <Loading message="認証情報を確認中..." />;
   }
 
   if (!user) return null;
 
-  if (taskLoading) {
+  if (taskLoading || statusLoading) {
     return <Loading message="タスク読み込み中..." />;
   }
 
@@ -43,7 +50,12 @@ export default function TasksPage() {
     return <ErrorState message="タスクの取得に失敗しました。" />;
   }
 
+  if (statusError) {
+    return <ErrorState message="ステータスの取得に失敗しました。" />;
+  }
+
   const tasks = data?.data ?? [];
+  const taskStatuses = statusData?.data ?? [];
 
   return (
     <div className="p-8">
@@ -63,14 +75,7 @@ export default function TasksPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {tasks.map((task) => (
-            <TaskCard
-              key={task.id}
-              id={task.id}
-              title={task.title}
-              description={task.description}
-              task_status={task.task_status}
-              assigned_user={task.assigned_user}
-            />
+            <TaskCard key={task.id} task={task} taskStatuses={taskStatuses} />
           ))}
         </div>
       )}

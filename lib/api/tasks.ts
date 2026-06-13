@@ -5,7 +5,12 @@ import {
   TaskFormData,
   TaskListResponse,
   TaskResponse,
+  TaskStatus,
 } from "@/types/task";
+
+export type TaskStatusListResponse = {
+  data: TaskStatus[];
+};
 
 export const getTasks = async (): Promise<TaskListResponse> => {
   return apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tasks`);
@@ -13,6 +18,10 @@ export const getTasks = async (): Promise<TaskListResponse> => {
 
 export const getTask = async (id: number): Promise<TaskResponse> => {
   return apiFetch(`/api/tasks/${id}`);
+};
+
+export const getTaskStatuses = async (): Promise<TaskStatusListResponse> => {
+  return apiFetch("/api/task-statuses");
 };
 
 export const createTask = async (data: TaskFormData): Promise<TaskResponse> => {
@@ -31,6 +40,17 @@ export const updateTask = async (
   return apiFetch(`/api/tasks/${id}`, {
     method: "PUT",
     body: JSON.stringify(data),
+    headers: { "Content-Type": "application/json" },
+  });
+};
+
+export const updateTaskStatus = async (
+  id: number,
+  status_id: number,
+): Promise<TaskResponse> => {
+  return apiFetch(`/api/tasks/${id}/status`, {
+    method: "PUT",
+    body: JSON.stringify({ status_id }),
     headers: { "Content-Type": "application/json" },
   });
 };
