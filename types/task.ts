@@ -3,6 +3,7 @@
 export type TaskStatus = {
   id: number;
   name: string;
+  sort_order: number;
 };
 
 export type AssignedUser = {
@@ -14,7 +15,9 @@ export type Task = {
   id: number;
   title: string;
   description: string | null;
+  status_id: number;
   task_status: TaskStatus | null;
+  assigned_user_id: number | null;
   assigned_user: AssignedUser | null;
   due_date: string | null;
   created_at: string;
@@ -34,4 +37,8 @@ export type TaskFormData = {
   title: string;
   description?: string | null;
   assigned_user_id?: number | null;
+};
+
+export type UpdateTaskStatusData = {
+  status_id: number;
 };
