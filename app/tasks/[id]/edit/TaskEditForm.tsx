@@ -7,6 +7,7 @@ import { getTask, updateTask } from "@/lib/api/tasks";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
+import TaskComments from "@/components/tasks/TaskComments";
 
 type Props = {
   taskId: string;
@@ -104,7 +105,9 @@ export default function TaskEditForm({ taskId }: Props) {
         >
           {saving ? "更新中..." : "更新"}
         </button>
+
       </form>
+      <TaskComments taskId={Number(taskId)} />
     </div>
   );
 }
