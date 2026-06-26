@@ -1,13 +1,14 @@
 // [id]/edit/TaskEditForm.tsx
 "use client";
 
+import { TaskAttachments } from "@/components/tasks/TaskAttachments";
+import TaskComments from "@/components/tasks/TaskComments";
 import ErrorState from "@/components/ui/ErrorState";
 import Loading from "@/components/ui/Loading";
 import { getTask, updateTask } from "@/lib/api/tasks";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
-import TaskComments from "@/components/tasks/TaskComments";
 
 type Props = {
   taskId: string;
@@ -105,9 +106,9 @@ export default function TaskEditForm({ taskId }: Props) {
         >
           {saving ? "更新中..." : "更新"}
         </button>
-
       </form>
       <TaskComments taskId={Number(taskId)} />
+      <TaskAttachments taskId={Number(taskId)} />
     </div>
   );
 }
