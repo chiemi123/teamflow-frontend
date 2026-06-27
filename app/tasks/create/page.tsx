@@ -14,7 +14,6 @@ export default function TaskCreatePage() {
   const [projectId, setProjectId] = useState("");
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
-  const [assignedUserId, setAssignedUserId] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -36,7 +35,7 @@ export default function TaskCreatePage() {
         project_id: Number(projectId),
         title,
         description,
-        assigned_user_id: assignedUserId ? Number(assignedUserId) : null,
+        assigned_user_id: null,
       });
 
       router.push("/tasks");
@@ -115,6 +114,10 @@ export default function TaskCreatePage() {
           />
         </div>
 
+        {/*
+        TODO(feature/task-assignee-selection):
+        組織メンバー一覧API実装後、
+        担当者選択(select)として復活予定
         <div>
           <label className="block mb-1 font-medium">担当者ID</label>
           <input
@@ -125,6 +128,7 @@ export default function TaskCreatePage() {
             placeholder="未入力なら担当者なし"
           />
         </div>
+        */}
 
         <button
           type="submit"

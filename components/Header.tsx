@@ -53,17 +53,48 @@ export default function Header() {
   };
 
   return (
-    <header className="flex justify-between items-center px-6 py-3 bg-gray-800 text-white">
-      <h1 className="text-lg font-bold">TeamFlow</h1>
-      <div className="flex items-center gap-6">
-        <Link href="/projects">プロジェクト</Link>
-        {user?.name && <span>👤 {user?.name}</span>}
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 px-3 py-1 rounded hover:bg-red-600"
-        >
-          ログアウト
-        </button>
+    <header className="bg-gray-800 px-4 py-4 text-white sm:px-6">
+      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <Link href="/projects" className="text-lg font-bold">
+          TeamFlow
+        </Link>
+
+        <div className="flex flex-col gap-4 md:flex-row md:items-center">
+          <nav className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/projects"
+              className={`rounded px-4 py-2 font-medium ${
+                pathname.startsWith("/projects")
+                  ? "bg-blue-600 text-white"
+                  : "hover:bg-gray-700"
+              }`}
+            >
+              プロジェクト
+            </Link>
+
+            <Link
+              href="/tasks"
+              className={`rounded px-4 py-2 font-medium ${
+                pathname.startsWith("/tasks")
+                  ? "bg-blue-600 text-white"
+                  : "hover:bg-gray-700"
+              }`}
+            >
+              タスク
+            </Link>
+          </nav>
+
+          <div className="flex flex-wrap items-center gap-4">
+            {user?.name && <span>👤 {user.name}</span>}
+
+            <button
+              onClick={handleLogout}
+              className="rounded bg-red-500 px-4 py-2 font-medium hover:bg-red-600"
+            >
+              ログアウト
+            </button>
+          </div>
+        </div>
       </div>
     </header>
   );

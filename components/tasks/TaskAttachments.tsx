@@ -1,3 +1,4 @@
+//components/tasks/TaskAttachments.tsx
 "use client";
 
 import {
@@ -54,21 +55,21 @@ export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
   const attachments = data?.data ?? [];
 
   return (
-    <section className="mt-8 rounded-lg border bg-white p-4">
-      <h2 className="text-lg font-semibold">添付ファイル</h2>
+    <section className="mt-8 rounded-lg border border-gray-200 bg-white p-4">
+      <h2 className="text-lg font-semibold text-gray-900">添付ファイル</h2>
 
-      <div className="mt-4 flex items-center gap-3">
+      <div className="mt-4 flex flex-col gap-3">
         <input
           type="file"
           onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
-          className="text-sm"
+          className="w-full text-sm file:mr-4 file:rounded file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:font-medium file:hover:bg-gray-200"
         />
 
         <button
           type="button"
           onClick={handleUpload}
           disabled={!selectedFile || isUploading}
-          className="rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          className="inline-flex w-full items-center justify-center whitespace-nowrap rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
         >
           {isUploading ? "アップロード中..." : "アップロード"}
         </button>
@@ -84,7 +85,7 @@ export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
             {attachments.map((attachment) => (
               <li
                 key={attachment.id}
-                className="flex items-center justify-between rounded border p-3"
+                className="flex flex-col gap-3 rounded-md border border-gray-100 bg-gray-50 p-3 sm:flex-row sm:items-center sm:justify-between"
               >
                 <div>
                   <p className="text-sm font-medium">{attachment.file_name}</p>
@@ -93,7 +94,7 @@ export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
                   </p>
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex flex-wrap gap-3 sm:flex-nowrap">
                   <a
                     href={attachment.download_url}
                     className="text-sm text-blue-600 hover:underline"

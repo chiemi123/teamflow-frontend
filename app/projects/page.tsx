@@ -54,14 +54,14 @@ export default function ProjectsPage() {
   }
 
   return (
-    <div className="p-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold mb-6">プロジェクト一覧</h1>
+    <div className="px-4 py-6 sm:px-6 lg:px-8">
+      <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h1 className="text-2xl font-bold">プロジェクト一覧</h1>
 
         {user?.can_create_project && (
           <Link
             href="/projects/create"
-            className="bg-green-500 text-white px-4 py-2 rounded"
+            className="inline-flex w-full justify-center rounded bg-green-500 px-4 py-2 text-white sm:w-auto"
           >
             新規作成
           </Link>
