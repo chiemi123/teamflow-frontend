@@ -69,7 +69,7 @@ export default function ProjectEditForm({ projectId }: ProjectEditFormProps) {
   };
 
   return (
-    <div className="p-8 max-w-md mx-auto">
+    <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 lg:px-8">
       <h1 className="text-2xl font-bold mb-6">プロジェクト編集</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">

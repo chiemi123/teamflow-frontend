@@ -72,7 +72,7 @@ export default function TaskEditForm({ taskId }: Props) {
   }
 
   return (
-    <div className="p-8 max-w-md mx-auto">
+    <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 lg:px-8">
       <h1 className="text-2xl font-bold mb-6">タスク編集</h1>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -102,7 +102,7 @@ export default function TaskEditForm({ taskId }: Props) {
         <button
           type="submit"
           disabled={saving}
-          className="bg-blue-500 text-white px-4 py-2 rounded"
+          className="w-full rounded bg-blue-500 px-4 py-2 text-white sm:w-auto"
         >
           {saving ? "更新中..." : "更新"}
         </button>

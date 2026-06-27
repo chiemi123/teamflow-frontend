@@ -96,7 +96,7 @@ export default function TaskComments({ taskId }: TaskCommentsProps) {
 
   return (
     <section className="mt-4 rounded-lg border border-gray-200 bg-white p-4">
-      <h3 className="mb-3 text-sm font-semibold text-gray-900">コメント</h3>
+      <h3 className="mb-3 text-lg font-semibold text-gray-900">コメント</h3>
 
       <form onSubmit={handleSubmit} className="mb-4 space-y-2">
         <textarea
@@ -110,7 +110,7 @@ export default function TaskComments({ taskId }: TaskCommentsProps) {
         <button
           type="submit"
           disabled={isSubmitting || !content.trim()}
-          className="rounded-md bg-blue-600 px-3 py-2 text-sm font-medium text-white disabled:cursor-not-allowed disabled:bg-gray-300"
+          className="inline-flex w-full items-center justify-center whitespace-nowrap rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
         >
           {isSubmitting ? "投稿中..." : "投稿"}
         </button>

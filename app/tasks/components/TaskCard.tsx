@@ -37,18 +37,18 @@ export default function TaskCard({ task, taskStatuses }: TaskCardProps) {
 
   return (
     <div className="rounded-lg border p-4 shadow-sm">
-      <div className="flex items-start justify-between gap-4">
-        <h2 className="text-lg font-bold">{task.title}</h2>
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+      <h2 className="break-words text-lg font-bold">{task.title}</h2>
 
         {task.task_status && (
-          <span className="rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">
+          <span className="w-fit rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">
             {task.task_status.name}
           </span>
         )}
       </div>
 
       {task.description && (
-        <p className="mt-2 text-sm text-gray-500">{task.description}</p>
+        <p className="mt-2 break-words text-sm text-gray-500">{task.description}</p>
       )}
 
       <div className="mt-3 text-sm text-gray-500">
@@ -74,16 +74,16 @@ export default function TaskCard({ task, taskStatuses }: TaskCardProps) {
         </select>
       </div>
 
-      <div className="mt-4 flex gap-2">
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row">
         <button
-          className="rounded bg-blue-500 px-3 py-1 text-white"
+          className="w-full rounded bg-blue-500 px-3 py-2 text-white sm:w-auto"
           onClick={() => router.push(`/tasks/${task.id}/edit`)}
         >
           編集
         </button>
 
         <button
-          className="rounded bg-red-500 px-3 py-1 text-white"
+          className="w-full rounded bg-red-500 px-3 py-2 text-white sm:w-auto"
           onClick={handleDelete}
         >
           削除
