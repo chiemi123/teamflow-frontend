@@ -1,4 +1,4 @@
-// Header.tsx
+// components/Header.tsx
 "use client";
 
 import { apiFetch } from "@/lib/api/client";
@@ -6,6 +6,7 @@ import { useUser } from "@/lib/hooks/useUser";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
+import NotificationBadge from "@/components/notifications/NotificationBadge";
 
 export default function Header() {
   const router = useRouter();
@@ -82,6 +83,8 @@ export default function Header() {
             >
               タスク
             </Link>
+
+            <NotificationBadge />
           </nav>
 
           <div className="flex flex-wrap items-center gap-4">
