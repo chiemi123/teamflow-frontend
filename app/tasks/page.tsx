@@ -28,13 +28,15 @@ export default function TasksPage() {
     data,
     error,
     isLoading: taskLoading,
-  } = useSWR(isAuthenticated ? "/api/tasks" : null, getTasks);
+  } = useSWR(isAuthenticated ? "/api/tasks" : null, () => getTasks());
 
   const {
     data: statusData,
     error: statusError,
     isLoading: statusLoading,
-  } = useSWR(isAuthenticated ? "/api/task-statuses" : null, getTaskStatuses);
+  } = useSWR(isAuthenticated ? "/api/task-statuses" : null, () =>
+    getTaskStatuses(),
+  );
 
   if (isLoading) {
     return <Loading message="認証情報を確認中..." />;

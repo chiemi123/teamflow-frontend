@@ -10,9 +10,14 @@ import { mutate } from "swr";
 type TaskCardProps = {
   task: Task;
   taskStatuses: TaskStatus[];
+  mutateKey?: string;
 };
 
-export default function TaskCard({ task, taskStatuses }: TaskCardProps) {
+export default function TaskCard({
+  task,
+  taskStatuses,
+  mutateKey = "/api/tasks",
+}: TaskCardProps) {
   const router = useRouter();
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
@@ -20,7 +25,7 @@ export default function TaskCard({ task, taskStatuses }: TaskCardProps) {
     if (!confirm("本当に削除しますか？")) return;
 
     await apiFetch(`/api/tasks/${task.id}`, { method: "DELETE" });
-    await mutate("/api/tasks");
+    await mutate(mutateKey);
   };
 
   const handleStatusChange = async (statusId: number) => {
@@ -29,7 +34,7 @@ export default function TaskCard({ task, taskStatuses }: TaskCardProps) {
 
       await updateTaskStatus(task.id, statusId);
 
-      await mutate("/api/tasks");
+      await mutate(mutateKey);
     } finally {
       setIsUpdatingStatus(false);
     }
@@ -38,7 +43,7 @@ export default function TaskCard({ task, taskStatuses }: TaskCardProps) {
   return (
     <div className="rounded-lg border p-4 shadow-sm">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-      <h2 className="break-words text-lg font-bold">{task.title}</h2>
+        <h2 className="break-words text-lg font-bold">{task.title}</h2>
 
         {task.task_status && (
           <span className="w-fit rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">
@@ -48,7 +53,9 @@ export default function TaskCard({ task, taskStatuses }: TaskCardProps) {
       </div>
 
       {task.description && (
-        <p className="mt-2 break-words text-sm text-gray-500">{task.description}</p>
+        <p className="mt-2 break-words text-sm text-gray-500">
+          {task.description}
+        </p>
       )}
 
       <div className="mt-3 text-sm text-gray-500">

@@ -6,21 +6,9 @@ import {
   SingleProjectResponse,
 } from "@/types/project";
 
+// 一覧
 export const getProjects = async (): Promise<ProjectResponse> => {
-  return apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/projects`);
-};
-
-// 新規作成
-export const createProject = async (data: {
-  name: string;
-  description: string;
-}): Promise<Project> => {
-  return apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/projects`, {
-    method: "POST",
-    body: JSON.stringify(data),
-    headers: { "Content-Type": "application/json" },
-    credentials: "include",
-  }) as Promise<Project>;
+  return apiFetch("/api/projects");
 };
 
 // 単体取得 API
@@ -28,6 +16,18 @@ export const getProject = async (
   id: number,
 ): Promise<SingleProjectResponse> => {
   return apiFetch(`/api/projects/${id}`);
+};
+
+// 新規作成
+export const createProject = async (data: {
+  name: string;
+  description: string;
+}): Promise<Project> => {
+  return apiFetch("/api/projects", {
+    method: "POST",
+    body: JSON.stringify(data),
+    headers: { "Content-Type": "application/json" },
+  }) as Promise<Project>;
 };
 
 // 編集（更新）
@@ -40,4 +40,13 @@ export const updateProject = async (
     body: JSON.stringify(data),
     headers: { "Content-Type": "application/json" },
   }) as Promise<Project | null>;
+};
+
+// 削除
+export const deleteProject = async (
+  id: number,
+): Promise<null> => {
+  return apiFetch(`/api/projects/${id}`, {
+    method: "DELETE",
+  }) as Promise<null>;
 };

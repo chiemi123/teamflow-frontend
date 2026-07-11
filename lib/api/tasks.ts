@@ -12,8 +12,14 @@ export type TaskStatusListResponse = {
   data: TaskStatus[];
 };
 
-export const getTasks = async (): Promise<TaskListResponse> => {
-  return apiFetch(`${process.env.NEXT_PUBLIC_API_URL}/api/tasks`);
+export const getTasks = async (
+  projectId?: number,
+): Promise<TaskListResponse> => {
+  const url = projectId
+    ? `${process.env.NEXT_PUBLIC_API_URL}/api/tasks?project_id=${projectId}`
+    : `${process.env.NEXT_PUBLIC_API_URL}/api/tasks`;
+
+  return apiFetch(url);
 };
 
 export const getTask = async (id: number): Promise<TaskResponse> => {
