@@ -24,7 +24,7 @@ export default function ProjectCard({
     if (!confirm("本当に削除しますか？")) return;
 
     await apiFetch(`/api/projects/${id}`, { method: "DELETE" });
-    mutate("/api/projects"); // 一覧を再取得
+    await mutate("/api/projects"); // 一覧を再取得
   };
 
   return (
@@ -35,7 +35,14 @@ export default function ProjectCard({
         <p className="mt-2 text-sm text-gray-500">{description ?? ""}</p>
       )}
 
-      <div className="mt-4 flex gap-2">
+      <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+        <button
+          className="w-full rounded bg-gray-600 px-3 py-2 text-white sm:w-auto"
+          onClick={() => router.push(`/projects/${id}`)}
+        >
+          詳細
+        </button>
+
         {canEdit && (
           <button
             className="bg-blue-500 text-white px-3 py-1 rounded"
