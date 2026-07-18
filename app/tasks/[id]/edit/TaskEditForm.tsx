@@ -2,7 +2,6 @@
 "use client";
 
 import { TaskAttachments } from "@/components/tasks/TaskAttachments";
-import TaskComments from "@/components/tasks/TaskComments";
 import ErrorState from "@/components/ui/ErrorState";
 import Loading from "@/components/ui/Loading";
 import { getTask, updateTask } from "@/lib/api/tasks";
@@ -21,6 +20,7 @@ export default function TaskEditForm({ taskId }: Props) {
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
+  const [dueDate, setDueDate] = useState("");
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [submitError, setSubmitError] = useState("");
@@ -29,6 +29,7 @@ export default function TaskEditForm({ taskId }: Props) {
     if (data?.data) {
       setTitle(data.data.title ?? "");
       setDescription(data.data.description ?? "");
+      setDueDate(data.data.due_date ?? "");
     }
   }, [data]);
 
@@ -41,9 +42,10 @@ export default function TaskEditForm({ taskId }: Props) {
       await updateTask(Number(taskId), {
         title,
         description,
+        due_date: dueDate || null,
       });
 
-      router.push("/tasks");
+      router.push(`/tasks/${taskId}`);
     } catch (err: unknown) {
       const error = err as { status?: number; message?: string };
 
@@ -97,6 +99,17 @@ export default function TaskEditForm({ taskId }: Props) {
           />
         </div>
 
+        <div>
+          <label className="block mb-1 font-medium">期限</label>
+
+          <input
+            type="date"
+            value={dueDate}
+            onChange={(e) => setDueDate(e.target.value)}
+            className="w-full border rounded px-3 py-2 sm:w-auto"
+          />
+        </div>
+
         {submitError && <p className="text-red-500">{submitError}</p>}
 
         <button
@@ -107,7 +120,6 @@ export default function TaskEditForm({ taskId }: Props) {
           {saving ? "更新中..." : "更新"}
         </button>
       </form>
-      <TaskComments taskId={Number(taskId)} />
       <TaskAttachments taskId={Number(taskId)} />
     </div>
   );

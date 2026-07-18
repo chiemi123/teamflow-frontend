@@ -37,6 +37,7 @@ export type TaskFormData = {
   title: string;
   description?: string | null;
   assigned_user_id?: number | null;
+  due_date?: string | null;
 };
 
 export type UpdateTaskStatusData = {

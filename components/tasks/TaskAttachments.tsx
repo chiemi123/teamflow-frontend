@@ -11,11 +11,16 @@ import useSWR from "swr";
 
 type TaskAttachmentsProps = {
   taskId: number;
+  readonly?: boolean;
 };
 
-export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
+export function TaskAttachments({
+  taskId,
+  readonly = false,
+}: TaskAttachmentsProps) {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
 
   const { data, error, isLoading, mutate } = useSWR(
     taskId ? `/api/tasks/${taskId}/attachments` : null,
@@ -23,7 +28,7 @@ export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
   );
 
   const handleUpload = async () => {
-    if (!selectedFile) return;
+    if (!selectedFile || readonly) return;
 
     try {
       setIsUploading(true);
@@ -36,10 +41,17 @@ export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
   };
 
   const handleDelete = async (attachmentId: number) => {
-    if (!confirm("この添付ファイルを削除しますか？")) return;
+    if (readonly) return;
+    if (!window.confirm("この添付ファイルを削除しますか？")) return;
 
-    await deleteAttachment(attachmentId);
-    await mutate();
+    try {
+      setDeletingId(attachmentId);
+
+      await deleteAttachment(attachmentId);
+      await mutate();
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   if (isLoading) {
@@ -58,22 +70,24 @@ export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
     <section className="mt-8 rounded-lg border border-gray-200 bg-white p-4">
       <h2 className="text-lg font-semibold text-gray-900">添付ファイル</h2>
 
-      <div className="mt-4 flex flex-col gap-3">
-        <input
-          type="file"
-          onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
-          className="w-full text-sm file:mr-4 file:rounded file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:font-medium file:hover:bg-gray-200"
-        />
+      {!readonly && (
+        <div className="mt-4 flex flex-col gap-3">
+          <input
+            type="file"
+            onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
+            className="w-full text-sm file:mr-4 file:rounded file:border-0 file:bg-gray-100 file:px-4 file:py-2 file:font-medium file:hover:bg-gray-200"
+          />
 
-        <button
-          type="button"
-          onClick={handleUpload}
-          disabled={!selectedFile || isUploading}
-          className="inline-flex w-full items-center justify-center whitespace-nowrap rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
-        >
-          {isUploading ? "アップロード中..." : "アップロード"}
-        </button>
-      </div>
+          <button
+            type="button"
+            onClick={handleUpload}
+            disabled={!selectedFile || isUploading}
+            className="inline-flex w-full items-center justify-center whitespace-nowrap rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white disabled:opacity-50"
+          >
+            {isUploading ? "アップロード中..." : "アップロード"}
+          </button>
+        </div>
+      )}
 
       <div className="mt-4">
         {attachments.length === 0 ? (
@@ -102,13 +116,16 @@ export function TaskAttachments({ taskId }: TaskAttachmentsProps) {
                     ダウンロード
                   </a>
 
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(attachment.id)}
-                    className="text-sm text-red-600 hover:underline"
-                  >
-                    削除
-                  </button>
+                  {!readonly && (
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(attachment.id)}
+                      disabled={deletingId === attachment.id}
+                      className="text-sm text-red-600 hover:underline disabled:cursor-not-allowed disabled:text-gray-400 disabled:no-underline"
+                    >
+                      {deletingId === attachment.id ? "削除中..." : "削除"}
+                    </button>
+                  )}
                 </div>
               </li>
             ))}
