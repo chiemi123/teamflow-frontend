@@ -41,7 +41,7 @@ export default function TaskComments({ taskId }: TaskCommentsProps) {
       });
 
       setContent("");
-      mutate();
+      await mutate();
     } finally {
       setIsSubmitting(false);
     }
@@ -55,7 +55,7 @@ export default function TaskComments({ taskId }: TaskCommentsProps) {
 
       await deleteTaskComment(commentId);
 
-      mutate();
+      await mutate();
     } finally {
       setDeletingId(null);
     }
@@ -78,7 +78,7 @@ export default function TaskComments({ taskId }: TaskCommentsProps) {
 
       setEditingId(null);
       setEditingContent("");
-      mutate();
+      await mutate();
     } finally {
       setUpdatingId(null);
     }

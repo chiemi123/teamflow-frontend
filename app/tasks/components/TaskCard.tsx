@@ -1,7 +1,6 @@
 // app/tasks/components/TaskCard.tsx
 
-import { apiFetch } from "@/lib/api/client";
-import { updateTaskStatus } from "@/lib/api/tasks";
+import { deleteTask, updateTaskStatus } from "@/lib/api/tasks";
 import { Task, TaskStatus } from "@/types/task";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -22,9 +21,9 @@ export default function TaskCard({
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
   const handleDelete = async () => {
-    if (!confirm("本当に削除しますか？")) return;
+    if (!window.confirm("本当に削除しますか？")) return;
 
-    await apiFetch(`/api/tasks/${task.id}`, { method: "DELETE" });
+    await deleteTask(task.id);
     await mutate(mutateKey);
   };
 
@@ -43,7 +42,13 @@ export default function TaskCard({
   return (
     <div className="rounded-lg border p-4 shadow-sm">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-        <h2 className="break-words text-lg font-bold">{task.title}</h2>
+        <button
+          type="button"
+          onClick={() => router.push(`/tasks/${task.id}`)}
+          className="break-words text-left text-lg font-bold text-gray-900 hover:text-blue-600 hover:underline"
+        >
+          {task.title}
+        </button>
 
         {task.task_status && (
           <span className="w-fit rounded bg-gray-100 px-2 py-1 text-xs text-gray-700">
@@ -83,6 +88,15 @@ export default function TaskCard({
 
       <div className="mt-4 flex flex-col gap-2 sm:flex-row">
         <button
+          type="button"
+          className="w-full rounded bg-gray-700 px-3 py-2 text-white hover:bg-gray-800 sm:w-auto"
+          onClick={() => router.push(`/tasks/${task.id}`)}
+        >
+          詳細
+        </button>
+
+        <button
+          type="button"
           className="w-full rounded bg-blue-500 px-3 py-2 text-white sm:w-auto"
           onClick={() => router.push(`/tasks/${task.id}/edit`)}
         >
@@ -90,6 +104,7 @@ export default function TaskCard({
         </button>
 
         <button
+          type="button"
           className="w-full rounded bg-red-500 px-3 py-2 text-white sm:w-auto"
           onClick={handleDelete}
         >
