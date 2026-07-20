@@ -10,12 +10,15 @@ import ErrorState from "@/components/ui/ErrorState";
 import Loading from "@/components/ui/Loading";
 import { getProject } from "@/lib/api/projects";
 import { getTasks, getTaskStatuses } from "@/lib/api/tasks";
+import { useUser } from "@/lib/hooks/useUser";
 
 type Props = {
   projectId: number;
 };
 
 export default function ProjectDetail({ projectId }: Props) {
+  const { user } = useUser();
+
   const {
     data: projectData,
     error: projectError,
@@ -104,12 +107,14 @@ export default function ProjectDetail({ projectId }: Props) {
         <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <h2 className="text-xl font-bold">このプロジェクトのタスク</h2>
 
-          <Link
-            href="/tasks/create"
-            className="rounded bg-green-600 px-4 py-2 text-center text-sm font-medium text-white hover:bg-green-700"
-          >
-            タスクを作成
-          </Link>
+          {user?.can_create_task && (
+            <Link
+              href={`/tasks/create?project_id=${project.id}`}
+              className="rounded bg-green-600 px-4 py-2 text-center text-sm font-medium text-white hover:bg-green-700"
+            >
+              タスクを作成
+            </Link>
+          )}
         </div>
 
         {tasks.length === 0 ? (
