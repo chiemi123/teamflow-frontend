@@ -64,12 +64,14 @@ export default function TasksPage() {
       <div className="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <h1 className="text-2xl font-bold">タスク一覧</h1>
 
-        <Link
-          href="/tasks/create"
-          className="inline-flex w-full justify-center rounded bg-green-500 px-4 py-2 text-white sm:w-auto"
-        >
-          新規作成
-        </Link>
+        {user?.can_create_task && (
+          <Link
+            href="/tasks/create"
+            className="inline-flex w-full justify-center rounded bg-green-500 px-4 py-2 text-white sm:w-auto"
+          >
+            新規作成
+          </Link>
+        )}
       </div>
 
       {tasks.length === 0 ? (

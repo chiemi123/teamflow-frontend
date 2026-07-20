@@ -72,18 +72,24 @@ export default function TaskCard({
           ステータス
         </label>
 
-        <select
-          className="w-full rounded border px-3 py-2 text-sm"
-          value={task.status_id}
-          disabled={isUpdatingStatus}
-          onChange={(e) => handleStatusChange(Number(e.target.value))}
-        >
-          {taskStatuses.map((status) => (
-            <option key={status.id} value={status.id}>
-              {status.name}
-            </option>
-          ))}
-        </select>
+        {task.permissions.can_update_status ? (
+          <select
+            className="w-full rounded border px-3 py-2 text-sm"
+            value={task.status_id}
+            disabled={isUpdatingStatus}
+            onChange={(e) => handleStatusChange(Number(e.target.value))}
+          >
+            {taskStatuses.map((status) => (
+              <option key={status.id} value={status.id}>
+                {status.name}
+              </option>
+            ))}
+          </select>
+        ) : (
+          <div className="rounded border bg-gray-50 px-3 py-2 text-sm text-gray-700">
+            {task.task_status?.name ?? "未設定"}
+          </div>
+        )}
       </div>
 
       <div className="mt-4 flex flex-col gap-2 sm:flex-row">
@@ -95,21 +101,25 @@ export default function TaskCard({
           詳細
         </button>
 
-        <button
-          type="button"
-          className="w-full rounded bg-blue-500 px-3 py-2 text-white sm:w-auto"
-          onClick={() => router.push(`/tasks/${task.id}/edit`)}
-        >
-          編集
-        </button>
+        {task.permissions.can_update && (
+          <button
+            type="button"
+            className="w-full rounded bg-blue-500 px-3 py-2 text-white sm:w-auto"
+            onClick={() => router.push(`/tasks/${task.id}/edit`)}
+          >
+            編集
+          </button>
+        )}
 
-        <button
-          type="button"
-          className="w-full rounded bg-red-500 px-3 py-2 text-white sm:w-auto"
-          onClick={handleDelete}
-        >
-          削除
-        </button>
+        {task.permissions.can_delete && (
+          <button
+            type="button"
+            className="w-full rounded bg-red-500 px-3 py-2 text-white sm:w-auto"
+            onClick={handleDelete}
+          >
+            削除
+          </button>
+        )}
       </div>
     </div>
   );

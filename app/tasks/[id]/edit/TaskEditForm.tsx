@@ -73,6 +73,16 @@ export default function TaskEditForm({ taskId }: Props) {
     return <ErrorState message="タスクが見つかりませんでした。" />;
   }
 
+  const task = data?.data;
+
+  if (!task) {
+    return <ErrorState message="タスクが見つかりませんでした。" />;
+  }
+
+  if (!task.permissions.can_update) {
+    return <ErrorState message="このタスクを編集する権限がありません。" />;
+  }
+
   return (
     <div className="mx-auto w-full max-w-3xl px-4 py-6 sm:px-6 lg:px-8">
       <h1 className="text-2xl font-bold mb-6">タスク編集</h1>

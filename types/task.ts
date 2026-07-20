@@ -11,6 +11,12 @@ export type AssignedUser = {
   name: string;
 };
 
+export type TaskPermissions = {
+  can_update: boolean;
+  can_delete: boolean;
+  can_update_status: boolean;
+};
+
 export type Task = {
   id: number;
   title: string;
@@ -22,6 +28,7 @@ export type Task = {
   due_date: string | null;
   created_at: string;
   updated_at: string;
+  permissions: TaskPermissions;
 };
 
 export type TaskResponse = {
@@ -43,3 +50,4 @@ export type TaskFormData = {
 export type UpdateTaskStatusData = {
   status_id: number;
 };
+
