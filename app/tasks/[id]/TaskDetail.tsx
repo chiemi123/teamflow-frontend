@@ -104,6 +104,15 @@ export default function TaskDetail({ taskId }: Props) {
             </span>
           </p>
 
+          {task.completed_at && (
+            <p>
+              完了日時：
+              <span className="font-medium text-gray-900">
+                {formatDateTime(task.completed_at)}
+              </span>
+            </p>
+          )}
+
           <p>
             作成日：
             <span className="font-medium text-gray-900">
