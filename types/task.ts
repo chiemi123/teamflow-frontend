@@ -26,6 +26,7 @@ export type Task = {
   assigned_user_id: number | null;
   assigned_user: AssignedUser | null;
   due_date: string | null;
+  completed_at: string | null;
   created_at: string;
   updated_at: string;
   permissions: TaskPermissions;
