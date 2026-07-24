@@ -1,7 +1,6 @@
 //app/projects/create/page.tsx
 "use client";
 
-import ErrorState from "@/components/ui/ErrorState";
 import Loading from "@/components/ui/Loading";
 import { createProject } from "@/lib/api/projects";
 import { useRouter } from "next/navigation";
@@ -22,12 +21,11 @@ export default function ProjectCreatePage() {
     try {
       await createProject({ name, description });
       router.push("/projects"); // 作成成功 → 一覧へ
-    } catch (err: any) {
-      // 403権限エラーもここで捕捉
-      if (err?.status === 403) {
-        setError("権限がありません");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setError(err.message);
       } else {
-        setError(err?.message || "作成に失敗しました");
+        setError("作成に失敗しました");
       }
     } finally {
       setLoading(false);
@@ -35,7 +33,6 @@ export default function ProjectCreatePage() {
   };
 
   if (loading) return <Loading message="プロジェクト作成中..." />;
-  if (error) return <ErrorState message={error} />;
 
   return (
     <div className="p-8 max-w-md mx-auto">

@@ -1,6 +1,8 @@
-import { NextRequest, NextResponse } from "next/server";
+// middleware.ts
 
-export function middleware(request: NextRequest) {
+import { NextResponse } from "next/server";
+
+export function middleware() {
   return NextResponse.next();
 }
 
