@@ -18,16 +18,14 @@ export default function ProjectEditForm({ projectId }: ProjectEditFormProps) {
   const router = useRouter();
   const idNumber = Number(projectId);
 
-  if (isNaN(idNumber)) return <ErrorState message="無効なプロジェクトIDです" />;
+  const isValidProjectId =
+    Number.isInteger(idNumber) && idNumber > 0;
 
   // SWR の型も ProjectResponse に統一
   const { data, error, isLoading } = useSWR<SingleProjectResponse>(
     `/api/projects/${idNumber}`,
     () => getProject(idNumber),
   );
-
-  console.log("SWR data:", data);
-  console.log("SWR error:", error);
 
   // フォーム用 state
   const [name, setName] = useState("");
@@ -41,11 +39,12 @@ export default function ProjectEditForm({ projectId }: ProjectEditFormProps) {
     if (data?.data) {
       setName(data.data.name);
       setDescription(data.data.description ?? "");
-
-      console.log("取得したプロジェクト名:", data.data.name);
-      console.log("取得したプロジェクト説明:", data.data.description);
     }
   }, [data]);
+
+  if (!isValidProjectId) {
+    return <ErrorState message="無効なプロジェクトIDです" />;
+  }
 
   // 読み込み中 / エラー制御
   if (isLoading) return <Loading message="プロジェクト読み込み中..." />;
@@ -61,8 +60,12 @@ export default function ProjectEditForm({ projectId }: ProjectEditFormProps) {
     try {
       await updateProject(idNumber, { name, description });
       router.push("/projects"); // 更新成功 → 一覧へ
-    } catch (err: any) {
-      setFormError(err?.message || "更新に失敗しました");
+    } catch (err: unknown) {
+      if (err instanceof Error) {
+        setFormError(err.message);
+      } else {
+        setFormError("更新に失敗しました");
+      }
     } finally {
       setLoading(false);
     }
