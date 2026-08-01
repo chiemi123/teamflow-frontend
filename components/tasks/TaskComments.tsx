@@ -1,3 +1,4 @@
+// components/tasks/TaskComments.tsx
 "use client";
 
 import {
@@ -145,26 +146,30 @@ export default function TaskComments({ taskId }: TaskCommentsProps) {
                     )}
                   </div>
 
-                  <button
-                    type="button"
-                    onClick={() => startEdit(comment.id, comment.content)}
-                    className="text-xs text-blue-500 hover:underline"
-                  >
-                    編集
-                  </button>
+                  {comment.permissions.can_update && (
+                    <button
+                      type="button"
+                      onClick={() => startEdit(comment.id, comment.content)}
+                      className="text-xs text-blue-500 hover:underline"
+                    >
+                      編集
+                    </button>
+                  )}
 
-                  <button
-                    type="button"
-                    onClick={() => handleDelete(comment.id)}
-                    disabled={deletingId === comment.id}
-                    className="text-xs text-red-500 hover:underline disabled:text-gray-400"
-                  >
-                    {deletingId === comment.id ? "削除中..." : "削除"}
-                  </button>
+                  {comment.permissions.can_delete && (
+                    <button
+                      type="button"
+                      onClick={() => handleDelete(comment.id)}
+                      disabled={deletingId === comment.id}
+                      className="text-xs text-red-500 hover:underline disabled:text-gray-400"
+                    >
+                      {deletingId === comment.id ? "削除中..." : "削除"}
+                    </button>
+                  )}
                 </div>
               </div>
 
-              {editingId === comment.id ? (
+              {editingId === comment.id && comment.permissions.can_update ? (
                 <div className="space-y-2">
                   <textarea
                     value={editingContent}
