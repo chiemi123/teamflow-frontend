@@ -6,6 +6,10 @@ export type TaskStatus = {
   sort_order: number;
 };
 
+export type TaskStatusListResponse = {
+  data: TaskStatus[];
+};
+
 export type AssignedUser = {
   id: number;
   name: string;
