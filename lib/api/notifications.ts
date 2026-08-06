@@ -1,20 +1,21 @@
-import type { UserNotification } from "@/types/userNotification";
-import { apiFetch } from "./client";
+// lib/api/notifications.ts
 
-type UserNotificationResponse = {
-  data: UserNotification[];
-};
+import { apiFetch } from "@/lib/api/client";
+import type {
+  UserNotification,
+  UserNotificationResponse,
+} from "@/types/userNotification";
 
 export async function fetchUserNotifications(): Promise<UserNotification[]> {
-  const response = (await apiFetch(
-    "/api/user-notifications",
-  )) as UserNotificationResponse;
+  const response = await apiFetch<UserNotificationResponse>(
+  "/api/user-notifications",
+  );
 
   return response.data;
 }
 
 export async function markNotificationAsRead(id: number): Promise<void> {
-  await apiFetch(`/api/user-notifications/${id}/read`, {
+  await apiFetch<null>(`/api/user-notifications/${id}/read`, {
     method: "PUT",
   });
 }

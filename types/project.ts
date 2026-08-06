@@ -1,4 +1,5 @@
 // types/project.ts
+
 export type Project = {
   id: number;
   name: string;

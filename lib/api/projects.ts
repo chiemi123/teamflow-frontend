@@ -1,6 +1,7 @@
 // lib/api/projects.ts
+
 import { apiFetch } from "@/lib/api/client";
-import {
+import type {
   Project,
   ProjectResponse,
   SingleProjectResponse,
@@ -8,14 +9,14 @@ import {
 
 // 一覧
 export const getProjects = async (): Promise<ProjectResponse> => {
-  return apiFetch("/api/projects");
+  return apiFetch<ProjectResponse>("/api/projects");
 };
 
-// 単体取得 API
+// 単体取得
 export const getProject = async (
   id: number,
 ): Promise<SingleProjectResponse> => {
-  return apiFetch(`/api/projects/${id}`);
+  return apiFetch<SingleProjectResponse>(`/api/projects/${id}`);
 };
 
 // 新規作成
@@ -23,30 +24,29 @@ export const createProject = async (data: {
   name: string;
   description: string;
 }): Promise<Project> => {
-  return apiFetch("/api/projects", {
+  return apiFetch<Project>("/api/projects", {
     method: "POST",
     body: JSON.stringify(data),
-    headers: { "Content-Type": "application/json" },
-  }) as Promise<Project>;
+  });
 };
 
-// 編集（更新）
+// 編集
 export const updateProject = async (
   id: number,
-  data: { name: string; description: string },
+  data: {
+    name: string;
+    description: string;
+  },
 ): Promise<Project | null> => {
-  return apiFetch(`/api/projects/${id}`, {
+  return apiFetch<Project | null>(`/api/projects/${id}`, {
     method: "PUT",
     body: JSON.stringify(data),
-    headers: { "Content-Type": "application/json" },
-  }) as Promise<Project | null>;
+  });
 };
 
 // 削除
-export const deleteProject = async (
-  id: number,
-): Promise<null> => {
-  return apiFetch(`/api/projects/${id}`, {
+export const deleteProject = async (id: number): Promise<null> => {
+  return apiFetch<null>(`/api/projects/${id}`, {
     method: "DELETE",
-  }) as Promise<null>;
+  });
 };

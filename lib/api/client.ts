@@ -7,18 +7,19 @@ const isNetworkError = (error: unknown): error is TypeError => {
   return error instanceof TypeError && error.message === "Failed to fetch";
 };
 
-export const apiFetch = async (url: string, options: RequestInit = {}) => {
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL; // 環境変数からAPI URLを取得
+export const apiFetch = async <T>(
+  url: string,
+  options: RequestInit = {},
+): Promise<T> => {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL;
 
   if (!apiUrl) {
     throw new Error("API URL is not defined.");
   }
 
-  const baseUrl: string = apiUrl;
+  const baseUrl = apiUrl.replace(/\/$/, "");
 
-  // CSRF Cookieの取得
   const method = options.method?.toUpperCase() || "GET";
-
   const requiresCsrf = !["GET", "HEAD"].includes(method);
 
   let token: string | undefined;
@@ -26,7 +27,7 @@ export const apiFetch = async (url: string, options: RequestInit = {}) => {
   if (requiresCsrf) {
     try {
       const csrfResponse = await fetch(
-        `${baseUrl.replace(/\/$/, "")}/sanctum/csrf-cookie`,
+        `${baseUrl}/sanctum/csrf-cookie`,
         {
           credentials: "include",
         },
@@ -61,21 +62,27 @@ export const apiFetch = async (url: string, options: RequestInit = {}) => {
     }
   }
 
+  const isFormData = options.body instanceof FormData;
+
   const headers: HeadersInit = {
-    ...(options.headers || {}),
-    "Content-Type": "application/json",
+    ...(!isFormData
+      ? {
+        "Content-Type": "application/json",
+      }
+      : {}),
     Accept: "application/json",
     "X-Requested-With": "XMLHttpRequest",
     ...(token
       ? {
-          "X-XSRF-TOKEN": decodeURIComponent(token),
-        }
+        "X-XSRF-TOKEN": decodeURIComponent(token),
+      }
       : {}),
+    ...(options.headers || {}),
   };
 
   const fullUrl = url.startsWith("http")
     ? url
-    : `${baseUrl.replace(/\/$/, "")}${url.startsWith("/") ? url : `/${url}`}`;
+    : `${baseUrl}${url.startsWith("/") ? url : `/${url}`}`;
 
   try {
     const response = await fetch(fullUrl, {
@@ -96,10 +103,10 @@ export const apiFetch = async (url: string, options: RequestInit = {}) => {
     }
 
     if (response.status === 204) {
-      return null;
+      return null as T;
     }
 
-    return await response.json();
+    return (await response.json()) as T;
   } catch (error) {
     console.error("Request failed:", error);
 

@@ -1,3 +1,5 @@
+//types/attachment.ts
+
 export type AttachmentUser = {
   id: number | null;
   name: string | null;
@@ -17,4 +19,8 @@ export type Attachment = {
 
 export type AttachmentResponse = {
   data: Attachment[];
+};
+
+export type SingleAttachmentResponse = {
+  data: Attachment;
 };

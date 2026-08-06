@@ -1,3 +1,5 @@
+// types/userNotification.ts
+
 export type UserNotificationTask = {
   id: number;
   title: string;
@@ -10,4 +12,8 @@ export type UserNotification = {
   read_at: string | null;
   created_at: string;
   task?: UserNotificationTask | null;
+};
+
+export type UserNotificationResponse = {
+  data: UserNotification[];
 };
