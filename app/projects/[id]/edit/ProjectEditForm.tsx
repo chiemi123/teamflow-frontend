@@ -4,6 +4,7 @@
 
 import ErrorState from "@/components/ui/ErrorState";
 import Loading from "@/components/ui/Loading";
+import { isApiError } from "@/lib/api/errors";
 import { getProject, updateProject } from "@/lib/api/projects";
 import { SingleProjectResponse } from "@/types/project";
 import { useRouter } from "next/navigation";
@@ -18,8 +19,7 @@ export default function ProjectEditForm({ projectId }: ProjectEditFormProps) {
   const router = useRouter();
   const idNumber = Number(projectId);
 
-  const isValidProjectId =
-    Number.isInteger(idNumber) && idNumber > 0;
+  const isValidProjectId = Number.isInteger(idNumber) && idNumber > 0;
 
   // SWR の型も ProjectResponse に統一
   const { data, error, isLoading } = useSWR<SingleProjectResponse>(
@@ -48,8 +48,13 @@ export default function ProjectEditForm({ projectId }: ProjectEditFormProps) {
 
   // 読み込み中 / エラー制御
   if (isLoading) return <Loading message="プロジェクト読み込み中..." />;
-  if (error) return <ErrorState message="データ取得に失敗しました" />;
-  if (!data?.data) return <ErrorState message="プロジェクトが見つかりません" />;
+  if (error) {
+    return <ErrorState message="プロジェクト情報の取得に失敗しました。" />;
+  }
+
+  if (!data?.data) {
+    return <ErrorState message="プロジェクトが見つかりません。" />;
+  }
 
   // 更新処理
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
@@ -61,10 +66,18 @@ export default function ProjectEditForm({ projectId }: ProjectEditFormProps) {
       await updateProject(idNumber, { name, description });
       router.push("/projects"); // 更新成功 → 一覧へ
     } catch (err: unknown) {
-      if (err instanceof Error) {
+      if (isApiError(err)) {
+        if (err.status === 403) {
+          setFormError("権限がありません");
+        } else if (err.status === 422) {
+          setFormError("入力内容を確認してください");
+        } else {
+          setFormError(err.message || "プロジェクト更新に失敗しました");
+        }
+      } else if (err instanceof Error) {
         setFormError(err.message);
       } else {
-        setFormError("更新に失敗しました");
+        setFormError("プロジェクト更新に失敗しました");
       }
     } finally {
       setLoading(false);

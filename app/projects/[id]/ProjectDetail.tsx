@@ -10,6 +10,7 @@ import ErrorState from "@/components/ui/ErrorState";
 import Loading from "@/components/ui/Loading";
 import { getProject } from "@/lib/api/projects";
 import { getTasks, getTaskStatuses } from "@/lib/api/tasks";
+import { isApiError } from "@/lib/api/errors";
 import { useUser } from "@/lib/hooks/useUser";
 
 type Props = {
@@ -52,6 +53,10 @@ export default function ProjectDetail({ projectId }: Props) {
   }
 
   if (projectError) {
+    if (isApiError(projectError) && projectError.status === 404) {
+      return <EmptyState message="プロジェクトが見つかりません。" />;
+    }
+
     return <ErrorState message="プロジェクト情報の取得に失敗しました。" />;
   }
 

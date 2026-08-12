@@ -4,11 +4,13 @@
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
 import Loading from "@/components/ui/Loading";
+import { isApiError } from "@/lib/api/errors";
 import {
   fetchUserNotifications,
   markNotificationAsRead,
 } from "@/lib/api/notifications";
 import type { UserNotification } from "@/types/userNotification";
+import { useState } from "react";
 import useSWR from "swr";
 
 function getNotificationMeta(type: string) {
@@ -65,9 +67,27 @@ export default function NotificationList() {
     shouldRetryOnError: false,
   });
 
+  const [actionError, setActionError] = useState("");
+
   const handleMarkAsRead = async (id: number) => {
-    await markNotificationAsRead(id);
-    mutate();
+    setActionError("");
+
+    try {
+      await markNotificationAsRead(id);
+      await mutate();
+    } catch (err: unknown) {
+      if (isApiError(err)) {
+        if (err.status === 403) {
+          setActionError("この操作を行う権限がありません");
+        } else {
+          setActionError(err.message || "通知の既読化に失敗しました");
+        }
+      } else if (err instanceof Error) {
+        setActionError(err.message);
+      } else {
+        setActionError("通知の既読化に失敗しました");
+      }
+    }
   };
 
   if (isLoading) {
@@ -84,6 +104,7 @@ export default function NotificationList() {
 
   return (
     <div className="space-y-3">
+      {actionError && <p className="text-red-500">{actionError}</p>}
       {notifications.map((notification: UserNotification) => {
         const meta = getNotificationMeta(notification.type);
 

@@ -9,6 +9,7 @@ import TaskComments from "@/components/tasks/TaskComments";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
 import Loading from "@/components/ui/Loading";
+import { isApiError } from "@/lib/api/errors";
 import { getTask } from "@/lib/api/tasks";
 
 type Props = {
@@ -49,6 +50,10 @@ export default function TaskDetail({ taskId }: Props) {
   }
 
   if (error) {
+    if (isApiError(error) && error.status === 404) {
+      return <EmptyState message="タスクが見つかりません。" />;
+    }
+
     return <ErrorState message="タスク情報の取得に失敗しました。" />;
   }
 

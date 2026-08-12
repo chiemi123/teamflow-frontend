@@ -49,7 +49,7 @@ export default function TasksPage() {
   }
 
   if (error) {
-    return <ErrorState message="タスクの取得に失敗しました。" />;
+    return <ErrorState message="タスク一覧の取得に失敗しました。" />;
   }
 
   if (statusError) {
