@@ -1,11 +1,14 @@
-//components/tasks/TaskAttachments.tsx
+// components/tasks/TaskAttachments.tsx
 "use client";
 
+import ErrorState from "@/components/ui/ErrorState";
+import Loading from "@/components/ui/Loading";
 import {
   deleteAttachment,
   getTaskAttachments,
   uploadTaskAttachment,
 } from "@/lib/api/attachments";
+import { isApiError } from "@/lib/api/errors";
 import { useState } from "react";
 import useSWR from "swr";
 
@@ -21,6 +24,7 @@ export function TaskAttachments({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
+  const [actionError, setActionError] = useState("");
 
   const { data, error, isLoading, mutate } = useSWR(
     taskId ? `/api/tasks/${taskId}/attachments` : null,
@@ -30,11 +34,30 @@ export function TaskAttachments({
   const handleUpload = async () => {
     if (!selectedFile || readonly) return;
 
+    setActionError("");
+
     try {
       setIsUploading(true);
+
       await uploadTaskAttachment(taskId, selectedFile);
       setSelectedFile(null);
       await mutate();
+    } catch (err: unknown) {
+      if (isApiError(err)) {
+        if (err.status === 403) {
+          setActionError("この操作を行う権限がありません");
+        } else if (err.status === 422) {
+          setActionError("アップロードするファイルを確認してください");
+        } else {
+          setActionError(
+            err.message || "添付ファイルのアップロードに失敗しました",
+          );
+        }
+      } else if (err instanceof Error) {
+        setActionError(err.message);
+      } else {
+        setActionError("添付ファイルのアップロードに失敗しました");
+      }
     } finally {
       setIsUploading(false);
     }
@@ -44,24 +67,36 @@ export function TaskAttachments({
     if (readonly) return;
     if (!window.confirm("この添付ファイルを削除しますか？")) return;
 
+    setActionError("");
+
     try {
       setDeletingId(attachmentId);
 
       await deleteAttachment(attachmentId);
       await mutate();
+    } catch (err: unknown) {
+      if (isApiError(err)) {
+        if (err.status === 403) {
+          setActionError("この操作を行う権限がありません");
+        } else {
+          setActionError(err.message || "添付ファイルの削除に失敗しました");
+        }
+      } else if (err instanceof Error) {
+        setActionError(err.message);
+      } else {
+        setActionError("添付ファイルの削除に失敗しました");
+      }
     } finally {
       setDeletingId(null);
     }
   };
 
   if (isLoading) {
-    return <p className="text-sm text-gray-500">添付ファイルを読み込み中...</p>;
+    return <Loading message="添付ファイルを読み込み中..." />;
   }
 
   if (error) {
-    return (
-      <p className="text-sm text-red-500">添付ファイルの取得に失敗しました。</p>
-    );
+    return <ErrorState message="添付ファイルの取得に失敗しました。" />;
   }
 
   const attachments = data?.data ?? [];
@@ -69,6 +104,9 @@ export function TaskAttachments({
   return (
     <section className="mt-8 rounded-lg border border-gray-200 bg-white p-4">
       <h2 className="text-lg font-semibold text-gray-900">添付ファイル</h2>
+      {actionError && (
+        <p className="mt-3 text-sm text-red-500">{actionError}</p>
+      )}
 
       {!readonly && (
         <div className="mt-4 flex flex-col gap-3">

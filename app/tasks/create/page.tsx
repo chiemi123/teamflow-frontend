@@ -1,7 +1,10 @@
+// app/tasks/create/page.tsx
+
 "use client";
 
 import ErrorState from "@/components/ui/ErrorState";
 import Loading from "@/components/ui/Loading";
+import { isApiError } from "@/lib/api/errors";
 import { getProjects } from "@/lib/api/projects";
 import { createTask } from "@/lib/api/tasks";
 import { useRouter } from "next/navigation";
@@ -15,7 +18,7 @@ export default function TaskCreatePage() {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [submitError, setSubmitError] = useState("");
 
   const {
     data: projectData,
@@ -28,7 +31,7 @@ export default function TaskCreatePage() {
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
+    setSubmitError("");
 
     try {
       await createTask({
@@ -40,16 +43,18 @@ export default function TaskCreatePage() {
 
       router.push("/tasks");
     } catch (err: unknown) {
-      const error = err as {
-        status?: number;
-        message?: string;
-      };
-      if (error?.status === 403) {
-        setError("権限がありません");
-      } else if (error?.status === 422) {
-        setError("入力内容を確認してください");
+      if (isApiError(err)) {
+        if (err.status === 403) {
+          setSubmitError("権限がありません");
+        } else if (err.status === 422) {
+          setSubmitError("入力内容を確認してください");
+        } else {
+          setSubmitError(err.message || "タスク作成に失敗しました");
+        }
+      } else if (err instanceof Error) {
+        setSubmitError(err.message);
       } else {
-        setError(error?.message || "タスク作成に失敗しました");
+        setSubmitError("タスク作成に失敗しました");
       }
     } finally {
       setLoading(false);
@@ -65,11 +70,7 @@ export default function TaskCreatePage() {
   }
 
   if (projectError) {
-    return <ErrorState message="プロジェクト情報の取得に失敗しました。" />;
-  }
-
-  if (error) {
-    return <ErrorState message={error} />;
+    return <ErrorState message="プロジェクト一覧の取得に失敗しました。" />;
   }
 
   return (
@@ -129,6 +130,8 @@ export default function TaskCreatePage() {
           />
         </div>
         */}
+
+        {submitError && <p className="text-red-500">{submitError}</p>}
 
         <button
           type="submit"

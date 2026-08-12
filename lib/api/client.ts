@@ -1,5 +1,7 @@
 // lib/api/client.ts
 
+import { ApiError } from "@/lib/api/errors";
+
 const NETWORK_ERROR_MESSAGE =
   "サーバーへ接続できませんでした。ネットワーク接続を確認して、もう一度お試しください。";
 
@@ -26,12 +28,9 @@ export const apiFetch = async <T>(
 
   if (requiresCsrf) {
     try {
-      const csrfResponse = await fetch(
-        `${baseUrl}/sanctum/csrf-cookie`,
-        {
-          credentials: "include",
-        },
-      );
+      const csrfResponse = await fetch(`${baseUrl}/sanctum/csrf-cookie`, {
+        credentials: "include",
+      });
 
       if (!csrfResponse.ok) {
         throw new Error(
@@ -67,15 +66,15 @@ export const apiFetch = async <T>(
   const headers: HeadersInit = {
     ...(!isFormData
       ? {
-        "Content-Type": "application/json",
-      }
+          "Content-Type": "application/json",
+        }
       : {}),
     Accept: "application/json",
     "X-Requested-With": "XMLHttpRequest",
     ...(token
       ? {
-        "X-XSRF-TOKEN": decodeURIComponent(token),
-      }
+          "X-XSRF-TOKEN": decodeURIComponent(token),
+        }
       : {}),
     ...(options.headers || {}),
   };
@@ -96,7 +95,8 @@ export const apiFetch = async <T>(
 
       console.error("API Error:", errorMessage);
 
-      throw new Error(
+      throw new ApiError(
+        response.status,
         errorMessage ||
           `API request failed: ${response.status} ${response.statusText}`,
       );

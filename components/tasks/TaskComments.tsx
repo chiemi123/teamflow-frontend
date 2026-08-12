@@ -1,6 +1,9 @@
 // components/tasks/TaskComments.tsx
 "use client";
 
+import ErrorState from "@/components/ui/ErrorState";
+import Loading from "@/components/ui/Loading";
+import { isApiError } from "@/lib/api/errors";
 import {
   createTaskComment,
   deleteTaskComment,
@@ -21,6 +24,7 @@ export default function TaskComments({ taskId }: TaskCommentsProps) {
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editingContent, setEditingContent] = useState("");
   const [updatingId, setUpdatingId] = useState<number | null>(null);
+  const [actionError, setActionError] = useState("");
 
   const { data, error, isLoading, mutate } = useSWR(
     taskId ? `/api/tasks/${taskId}/comments` : null,
@@ -29,10 +33,12 @@ export default function TaskComments({ taskId }: TaskCommentsProps) {
 
   const comments = data?.data ?? [];
 
-  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
 
     if (!content.trim()) return;
+
+    setActionError("");
 
     try {
       setIsSubmitting(true);
@@ -43,6 +49,20 @@ export default function TaskComments({ taskId }: TaskCommentsProps) {
 
       setContent("");
       await mutate();
+    } catch (err: unknown) {
+      if (isApiError(err)) {
+        if (err.status === 403) {
+          setActionError("この操作を行う権限がありません");
+        } else if (err.status === 422) {
+          setActionError("コメント内容を確認してください");
+        } else {
+          setActionError(err.message || "コメントの投稿に失敗しました");
+        }
+      } else if (err instanceof Error) {
+        setActionError(err.message);
+      } else {
+        setActionError("コメントの投稿に失敗しました");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -51,12 +71,25 @@ export default function TaskComments({ taskId }: TaskCommentsProps) {
   const handleDelete = async (commentId: number) => {
     if (!window.confirm("このコメントを削除しますか？")) return;
 
+    setActionError("");
+
     try {
       setDeletingId(commentId);
 
       await deleteTaskComment(commentId);
-
       await mutate();
+    } catch (err: unknown) {
+      if (isApiError(err)) {
+        if (err.status === 403) {
+          setActionError("この操作を行う権限がありません");
+        } else {
+          setActionError(err.message || "コメントの削除に失敗しました");
+        }
+      } else if (err instanceof Error) {
+        setActionError(err.message);
+      } else {
+        setActionError("コメントの削除に失敗しました");
+      }
     } finally {
       setDeletingId(null);
     }
@@ -70,6 +103,8 @@ export default function TaskComments({ taskId }: TaskCommentsProps) {
   const handleUpdate = async (commentId: number) => {
     if (!editingContent.trim()) return;
 
+    setActionError("");
+
     try {
       setUpdatingId(commentId);
 
@@ -80,24 +115,39 @@ export default function TaskComments({ taskId }: TaskCommentsProps) {
       setEditingId(null);
       setEditingContent("");
       await mutate();
+    } catch (err: unknown) {
+      if (isApiError(err)) {
+        if (err.status === 403) {
+          setActionError("この操作を行う権限がありません");
+        } else if (err.status === 422) {
+          setActionError("コメント内容を確認してください");
+        } else {
+          setActionError(err.message || "コメントの更新に失敗しました");
+        }
+      } else if (err instanceof Error) {
+        setActionError(err.message);
+      } else {
+        setActionError("コメントの更新に失敗しました");
+      }
     } finally {
       setUpdatingId(null);
     }
   };
 
   if (isLoading) {
-    return <p className="text-sm text-gray-500">コメントを読み込み中...</p>;
+    return <Loading message="コメントを読み込み中..." />;
   }
 
   if (error) {
-    return (
-      <p className="text-sm text-red-500">コメントの取得に失敗しました。</p>
-    );
+    return <ErrorState message="コメントの取得に失敗しました。" />;
   }
 
   return (
     <section className="mt-4 rounded-lg border border-gray-200 bg-white p-4">
       <h3 className="mb-3 text-lg font-semibold text-gray-900">コメント</h3>
+      {actionError && (
+        <p className="mt-3 text-sm text-red-500">{actionError}</p>
+      )}
 
       <form onSubmit={handleSubmit} className="mb-4 space-y-2">
         <textarea

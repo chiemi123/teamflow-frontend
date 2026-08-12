@@ -4,6 +4,7 @@
 import { TaskAttachments } from "@/components/tasks/TaskAttachments";
 import ErrorState from "@/components/ui/ErrorState";
 import Loading from "@/components/ui/Loading";
+import { isApiError } from "@/lib/api/errors";
 import { getTask, updateTask } from "@/lib/api/tasks";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -47,14 +48,18 @@ export default function TaskEditForm({ taskId }: Props) {
 
       router.push(`/tasks/${taskId}`);
     } catch (err: unknown) {
-      const error = err as { status?: number; message?: string };
-
-      if (error?.status === 403) {
-        setSubmitError("権限がありません");
-      } else if (error?.status === 422) {
-        setSubmitError("入力内容を確認してください");
+      if (isApiError(err)) {
+        if (err.status === 403) {
+          setSubmitError("権限がありません");
+        } else if (err.status === 422) {
+          setSubmitError("入力内容を確認してください");
+        } else {
+          setSubmitError(err.message || "タスク更新に失敗しました");
+        }
+      } else if (err instanceof Error) {
+        setSubmitError(err.message);
       } else {
-        setSubmitError(error?.message || "タスク更新に失敗しました");
+        setSubmitError("タスク更新に失敗しました");
       }
     } finally {
       setSaving(false);
@@ -70,7 +75,7 @@ export default function TaskEditForm({ taskId }: Props) {
   }
 
   if (error) {
-    return <ErrorState message="タスクが見つかりませんでした。" />;
+    return <ErrorState message="タスク情報の取得に失敗しました。" />;
   }
 
   const task = data?.data;

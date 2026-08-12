@@ -50,7 +50,7 @@ export default function ProjectsPage() {
 
   // プロジェクトデータ取得中にエラーが発生した場合
   if (error) {
-    return <ErrorState message="プロジェクトの取得に失敗しました。" />;
+    return <ErrorState message="プロジェクト一覧の取得に失敗しました。" />;
   }
 
   return (

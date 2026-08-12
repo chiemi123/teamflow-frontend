@@ -2,6 +2,7 @@
 "use client";
 
 import Loading from "@/components/ui/Loading";
+import { isApiError } from "@/lib/api/errors";
 import { createProject } from "@/lib/api/projects";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
@@ -11,21 +12,29 @@ export default function ProjectCreatePage() {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [submitError, setSubmitError] = useState("");
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    setError("");
+    setSubmitError("");
 
     try {
       await createProject({ name, description });
-      router.push("/projects"); // 作成成功 → 一覧へ
+      router.push("/projects");
     } catch (err: unknown) {
-      if (err instanceof Error) {
-        setError(err.message);
+      if (isApiError(err)) {
+        if (err.status === 403) {
+          setSubmitError("権限がありません");
+        } else if (err.status === 422) {
+          setSubmitError("入力内容を確認してください");
+        } else {
+          setSubmitError(err.message || "プロジェクト作成に失敗しました");
+        }
+      } else if (err instanceof Error) {
+        setSubmitError(err.message);
       } else {
-        setError("作成に失敗しました");
+        setSubmitError("プロジェクト作成に失敗しました");
       }
     } finally {
       setLoading(false);
@@ -59,7 +68,7 @@ export default function ProjectCreatePage() {
           />
         </div>
 
-        {error && <p className="text-red-500">{error}</p>}
+        {submitError && <p className="text-red-500">{submitError}</p>}
 
         <button
           type="submit"
