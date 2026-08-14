@@ -13,3 +13,12 @@ export type User = {
 export type UserResponse = {
   data: User;
 };
+
+export type OrganizationMember = {
+  id: number;
+  name: string;
+};
+
+export type OrganizationMemberListResponse = {
+  data: OrganizationMember[];
+};

@@ -1,10 +1,12 @@
 // [id]/edit/TaskEditForm.tsx
+
 "use client";
 
 import { TaskAttachments } from "@/components/tasks/TaskAttachments";
 import ErrorState from "@/components/ui/ErrorState";
 import Loading from "@/components/ui/Loading";
 import { isApiError } from "@/lib/api/errors";
+import { getOrganizationMembers } from "@/lib/api/organizationMembers";
 import { getTask, updateTask } from "@/lib/api/tasks";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -25,12 +27,26 @@ export default function TaskEditForm({ taskId }: Props) {
   const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [assignedUserId, setAssignedUserId] = useState("");
+
+  const {
+    data: memberData,
+    error: memberError,
+    isLoading: memberLoading,
+  } = useSWR("/api/organization-members", getOrganizationMembers);
+
+  const members = memberData?.data ?? [];
 
   useEffect(() => {
     if (data?.data) {
       setTitle(data.data.title ?? "");
       setDescription(data.data.description ?? "");
       setDueDate(data.data.due_date ?? "");
+      setAssignedUserId(
+        data.data.assigned_user_id !== null
+          ? String(data.data.assigned_user_id)
+          : "",
+      );
     }
   }, [data]);
 
@@ -44,6 +60,7 @@ export default function TaskEditForm({ taskId }: Props) {
         title,
         description,
         due_date: dueDate || null,
+        assigned_user_id: assignedUserId ? Number(assignedUserId) : null,
       });
 
       router.push(`/tasks/${taskId}`);
@@ -66,8 +83,8 @@ export default function TaskEditForm({ taskId }: Props) {
     }
   };
 
-  if (isLoading) {
-    return <Loading message="タスク読み込み中..." />;
+  if (isLoading || memberLoading) {
+    return <Loading message="タスク編集情報を読み込み中..." />;
   }
 
   if (saving) {
@@ -76,6 +93,10 @@ export default function TaskEditForm({ taskId }: Props) {
 
   if (error) {
     return <ErrorState message="タスク情報の取得に失敗しました。" />;
+  }
+
+  if (memberError) {
+    return <ErrorState message="担当者一覧の取得に失敗しました。" />;
   }
 
   const task = data?.data;
@@ -112,6 +133,24 @@ export default function TaskEditForm({ taskId }: Props) {
             onChange={(e) => setDescription(e.target.value)}
             className="w-full border rounded px-3 py-2"
           />
+        </div>
+
+        <div>
+          <label className="block mb-1 font-medium">担当者</label>
+
+          <select
+            value={assignedUserId}
+            onChange={(e) => setAssignedUserId(e.target.value)}
+            className="w-full border rounded px-3 py-2"
+          >
+            <option value="">担当者なし</option>
+
+            {members.map((member) => (
+              <option key={member.id} value={member.id}>
+                {member.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>

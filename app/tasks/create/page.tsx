@@ -5,6 +5,7 @@
 import ErrorState from "@/components/ui/ErrorState";
 import Loading from "@/components/ui/Loading";
 import { isApiError } from "@/lib/api/errors";
+import { getOrganizationMembers } from "@/lib/api/organizationMembers";
 import { getProjects } from "@/lib/api/projects";
 import { createTask } from "@/lib/api/tasks";
 import { useRouter } from "next/navigation";
@@ -19,6 +20,7 @@ export default function TaskCreatePage() {
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const [assignedUserId, setAssignedUserId] = useState("");
 
   const {
     data: projectData,
@@ -27,6 +29,14 @@ export default function TaskCreatePage() {
   } = useSWR("/api/projects", getProjects);
 
   const projects = projectData?.data ?? [];
+
+  const {
+    data: memberData,
+    error: memberError,
+    isLoading: memberLoading,
+  } = useSWR("/api/organization-members", getOrganizationMembers);
+
+  const members = memberData?.data ?? [];
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -38,7 +48,7 @@ export default function TaskCreatePage() {
         project_id: Number(projectId),
         title,
         description,
-        assigned_user_id: null,
+        assigned_user_id: assignedUserId ? Number(assignedUserId) : null,
       });
 
       router.push("/tasks");
@@ -61,16 +71,16 @@ export default function TaskCreatePage() {
     }
   };
 
-  if (projectLoading) {
-    return <Loading message="プロジェクト情報を読み込み中..." />;
-  }
-
-  if (loading) {
-    return <Loading message="タスク作成中..." />;
+  if (projectLoading || memberLoading) {
+    return <Loading message="タスク作成情報を読み込み中..." />;
   }
 
   if (projectError) {
     return <ErrorState message="プロジェクト一覧の取得に失敗しました。" />;
+  }
+
+  if (memberError) {
+    return <ErrorState message="担当者一覧の取得に失敗しました。" />;
   }
 
   return (
@@ -115,29 +125,31 @@ export default function TaskCreatePage() {
           />
         </div>
 
-        {/*
-        TODO(feature/task-assignee-selection):
-        組織メンバー一覧API実装後、
-        担当者選択(select)として復活予定
         <div>
-          <label className="block mb-1 font-medium">担当者ID</label>
-          <input
-            type="number"
+          <label className="block mb-1 font-medium">担当者</label>
+          <select
             value={assignedUserId}
             onChange={(e) => setAssignedUserId(e.target.value)}
             className="w-full border rounded px-3 py-2"
-            placeholder="未入力なら担当者なし"
-          />
+          >
+            <option value="">担当者なし</option>
+
+            {members.map((member) => (
+              <option key={member.id} value={member.id}>
+                {member.name}
+              </option>
+            ))}
+          </select>
         </div>
-        */}
 
         {submitError && <p className="text-red-500">{submitError}</p>}
 
         <button
           type="submit"
-          className="bg-blue-500 text-white px-4 py-2 rounded"
+          disabled={loading}
+          className="bg-blue-500 text-white px-4 py-2 rounded disabled:opacity-50"
         >
-          作成
+          {loading ? "作成中..." : "作成"}
         </button>
       </form>
     </div>
