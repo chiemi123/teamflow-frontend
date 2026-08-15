@@ -8,6 +8,8 @@ export type Project = {
     id: number;
     name: string;
   } | null;
+  tasks_count?: number;
+  completed_tasks_count?: number;
   created_at: string;
   updated_at: string;
 };
