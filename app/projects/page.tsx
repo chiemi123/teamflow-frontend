@@ -1,4 +1,4 @@
-// /projects/page.tsx
+// app/projects/page.tsx
 "use client";
 
 import EmptyState from "@/components/ui/EmptyState";
@@ -78,6 +78,8 @@ export default function ProjectsPage() {
               id={project.id}
               name={project.name}
               description={project.description ?? ""}
+              tasks_count={project.tasks_count}
+              completed_tasks_count={project.completed_tasks_count}
             />
           ))}
         </div>
