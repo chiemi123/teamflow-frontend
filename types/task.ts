@@ -33,6 +33,8 @@ export type Task = {
   completed_at: string | null;
   created_at: string;
   updated_at: string;
+  comments_count?: number;
+  attachments_count?: number;
   permissions: TaskPermissions;
 };
 
@@ -55,4 +57,3 @@ export type TaskFormData = {
 export type UpdateTaskStatusData = {
   status_id: number;
 };
-

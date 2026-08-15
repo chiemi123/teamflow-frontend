@@ -67,6 +67,11 @@ export default function TaskCard({
         担当者：{task.assigned_user?.name ?? "未設定"}
       </div>
 
+      <div className="mt-3 flex flex-wrap gap-4 text-sm text-gray-500">
+        <span>コメント：{task.comments_count ?? 0}件</span>
+        <span>添付：{task.attachments_count ?? 0}件</span>
+      </div>
+
       <div className="mt-3">
         <label className="mb-1 block text-sm font-medium text-gray-700">
           ステータス
