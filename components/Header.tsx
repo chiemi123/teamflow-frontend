@@ -1,24 +1,24 @@
 // components/Header.tsx
 "use client";
 
+import NotificationBadge from "@/components/notifications/NotificationBadge";
 import { apiFetch } from "@/lib/api/client";
 import { useUser } from "@/lib/hooks/useUser";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
-import NotificationBadge from "@/components/notifications/NotificationBadge";
 
 export default function Header() {
   const router = useRouter();
   const pathname = usePathname();
   // useUser フックから認証状態を取得
-  const { user, isLoading, isAuthenticated, errorMessage } = useUser();
+  const { user, isLoading, isAuthenticated, errorMessage, mutate } = useUser();
 
   useEffect(() => {
     if (isLoading) return;
 
     if (!isAuthenticated) {
-      router.push("/login");
+      router.replace("/login");
     }
   }, [isAuthenticated, isLoading, router]);
 
@@ -50,7 +50,9 @@ export default function Header() {
       method: "POST",
     });
 
-    router.push("/login");
+    await mutate(undefined, { revalidate: false });
+
+    router.replace("/login");
   };
 
   return (
