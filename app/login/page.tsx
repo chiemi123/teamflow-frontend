@@ -2,23 +2,30 @@
 
 "use client";
 
+import Loading from "@/components/ui/Loading";
 import { apiFetch } from "@/lib/api/client";
 import { isApiError } from "@/lib/api/errors";
 import { useUser } from "@/lib/hooks/useUser";
+import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function LoginPage() {
+  const router = useRouter();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitError, setSubmitError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const { user, mutate } = useUser();
+  const { user, isLoading, mutate } = useUser();
 
   useEffect(() => {
-    if (user && typeof user === "object" && "id" in user) {
-      window.location.href = "/projects"; // userが存在したら/projectsに遷移
+    if (!isLoading && user) {
+      router.replace("/projects");
     }
-  }, [user]);
+  }, [isLoading, user, router]);
+
+  if (isLoading || user) {
+    return <Loading message="認証情報を確認中..." />;
+  }
 
   // handleLogin関数をコンポーネント内で定義
   const handleLogin = async () => {
