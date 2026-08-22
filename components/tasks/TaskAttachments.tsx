@@ -9,6 +9,7 @@ import {
   uploadTaskAttachment,
 } from "@/lib/api/attachments";
 import { isApiError } from "@/lib/api/errors";
+import { useAuthGuard } from "@/lib/hooks/useAuthGuard";
 import { useState } from "react";
 import useSWR from "swr";
 
@@ -25,6 +26,7 @@ export function TaskAttachments({
   const [isUploading, setIsUploading] = useState(false);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [actionError, setActionError] = useState("");
+  const { handleUnauthorized } = useAuthGuard();
 
   const { data, error, isLoading, mutate } = useSWR(
     taskId ? `/api/tasks/${taskId}/attachments` : null,
@@ -43,6 +45,10 @@ export function TaskAttachments({
       setSelectedFile(null);
       await mutate();
     } catch (err: unknown) {
+      if (handleUnauthorized(err)) {
+        return;
+      }
+
       if (isApiError(err)) {
         if (err.status === 403) {
           setActionError("この操作を行う権限がありません");
@@ -75,6 +81,10 @@ export function TaskAttachments({
       await deleteAttachment(attachmentId);
       await mutate();
     } catch (err: unknown) {
+      if (handleUnauthorized(err)) {
+        return;
+      }
+
       if (isApiError(err)) {
         if (err.status === 403) {
           setActionError("この操作を行う権限がありません");

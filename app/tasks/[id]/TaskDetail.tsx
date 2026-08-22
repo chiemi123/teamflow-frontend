@@ -11,6 +11,7 @@ import ErrorState from "@/components/ui/ErrorState";
 import Loading from "@/components/ui/Loading";
 import { isApiError } from "@/lib/api/errors";
 import { getTask } from "@/lib/api/tasks";
+import { useAuthGuard } from "@/lib/hooks/useAuthGuard";
 
 type Props = {
   taskId: number;
@@ -35,8 +36,9 @@ const formatDateTime = (date: string) => {
 };
 
 export default function TaskDetail({ taskId }: Props) {
+  const { user, isLoading: authLoading, isAuthenticated } = useAuthGuard();
   const { data, error, isLoading } = useSWR(
-    Number.isFinite(taskId) ? `/api/tasks/${taskId}` : null,
+    isAuthenticated && Number.isFinite(taskId) ? `/api/tasks/${taskId}` : null,
     () => getTask(taskId),
     {
       shouldRetryOnError: false,
@@ -44,6 +46,14 @@ export default function TaskDetail({ taskId }: Props) {
   );
 
   const task = data?.data;
+
+  if (authLoading) {
+    return <Loading message="認証情報を確認中..." />;
+  }
+
+  if (!user) {
+    return null;
+  }
 
   if (isLoading) {
     return <Loading message="タスク情報を読み込み中..." />;

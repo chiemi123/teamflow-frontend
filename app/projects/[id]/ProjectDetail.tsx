@@ -8,45 +8,61 @@ import TaskCard from "@/app/tasks/components/TaskCard";
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
 import Loading from "@/components/ui/Loading";
+import { isApiError } from "@/lib/api/errors";
 import { getProject } from "@/lib/api/projects";
 import { getTasks, getTaskStatuses } from "@/lib/api/tasks";
-import { isApiError } from "@/lib/api/errors";
-import { useUser } from "@/lib/hooks/useUser";
+import { useAuthGuard } from "@/lib/hooks/useAuthGuard";
 
 type Props = {
   projectId: number;
 };
 
 export default function ProjectDetail({ projectId }: Props) {
-  const { user } = useUser();
+  const { user, isLoading: authLoading, isAuthenticated } = useAuthGuard();
 
   const {
     data: projectData,
     error: projectError,
     isLoading: projectLoading,
-  } = useSWR(`/api/projects/${projectId}`, () => getProject(projectId), {
-    shouldRetryOnError: false,
-  });
+  } = useSWR(
+    isAuthenticated ? `/api/projects/${projectId}` : null,
+    () => getProject(projectId),
+    {
+      shouldRetryOnError: false,
+    },
+  );
 
   const {
     data: taskData,
     error: taskError,
     isLoading: taskLoading,
-  } = useSWR(`/api/tasks?project_id=${projectId}`, () => getTasks(projectId), {
-    shouldRetryOnError: false,
-  });
+  } = useSWR(
+    isAuthenticated ? `/api/tasks?project_id=${projectId}` : null,
+    () => getTasks(projectId),
+    {
+      shouldRetryOnError: false,
+    },
+  );
 
   const {
     data: statusData,
     error: statusError,
     isLoading: statusLoading,
-  } = useSWR("/api/task-statuses", getTaskStatuses, {
+  } = useSWR(isAuthenticated ? "/api/task-statuses" : null, getTaskStatuses, {
     shouldRetryOnError: false,
   });
 
   const project = projectData?.data;
   const tasks = taskData?.data ?? [];
   const taskStatuses = statusData?.data ?? [];
+
+  if (authLoading) {
+    return <Loading message="認証情報を確認中..." />;
+  }
+
+  if (!user) {
+    return null;
+  }
 
   if (projectLoading) {
     return <Loading message="プロジェクト情報を読み込み中..." />;

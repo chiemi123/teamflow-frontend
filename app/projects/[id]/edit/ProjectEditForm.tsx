@@ -1,11 +1,11 @@
 // [id]/edit/ProjectEditForm.tsx
-
 "use client";
 
 import ErrorState from "@/components/ui/ErrorState";
 import Loading from "@/components/ui/Loading";
 import { isApiError } from "@/lib/api/errors";
 import { getProject, updateProject } from "@/lib/api/projects";
+import { useAuthGuard } from "@/lib/hooks/useAuthGuard";
 import { SingleProjectResponse } from "@/types/project";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -20,10 +20,16 @@ export default function ProjectEditForm({ projectId }: ProjectEditFormProps) {
   const idNumber = Number(projectId);
 
   const isValidProjectId = Number.isInteger(idNumber) && idNumber > 0;
+  const {
+    user,
+    isLoading: authLoading,
+    isAuthenticated,
+    handleUnauthorized,
+  } = useAuthGuard();
 
   // SWR の型も ProjectResponse に統一
   const { data, error, isLoading } = useSWR<SingleProjectResponse>(
-    `/api/projects/${idNumber}`,
+    isAuthenticated && isValidProjectId ? `/api/projects/${idNumber}` : null,
     () => getProject(idNumber),
   );
 
@@ -41,6 +47,14 @@ export default function ProjectEditForm({ projectId }: ProjectEditFormProps) {
       setDescription(data.data.description ?? "");
     }
   }, [data]);
+
+  if (authLoading) {
+    return <Loading message="認証情報を確認中..." />;
+  }
+
+  if (!user) {
+    return null;
+  }
 
   if (!isValidProjectId) {
     return <ErrorState message="無効なプロジェクトIDです" />;
@@ -66,6 +80,10 @@ export default function ProjectEditForm({ projectId }: ProjectEditFormProps) {
       await updateProject(idNumber, { name, description });
       router.push("/projects"); // 更新成功 → 一覧へ
     } catch (err: unknown) {
+      if (handleUnauthorized(err)) {
+        return;
+      }
+
       if (isApiError(err)) {
         if (err.status === 403) {
           setFormError("権限がありません");
