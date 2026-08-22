@@ -10,6 +10,7 @@ import {
   getTaskComments,
   updateTaskComment,
 } from "@/lib/api/taskComments";
+import { useAuthGuard } from "@/lib/hooks/useAuthGuard";
 import { useState } from "react";
 import useSWR from "swr";
 
@@ -25,6 +26,7 @@ export default function TaskComments({ taskId }: TaskCommentsProps) {
   const [editingContent, setEditingContent] = useState("");
   const [updatingId, setUpdatingId] = useState<number | null>(null);
   const [actionError, setActionError] = useState("");
+  const { handleUnauthorized } = useAuthGuard();
 
   const { data, error, isLoading, mutate } = useSWR(
     taskId ? `/api/tasks/${taskId}/comments` : null,
@@ -50,6 +52,10 @@ export default function TaskComments({ taskId }: TaskCommentsProps) {
       setContent("");
       await mutate();
     } catch (err: unknown) {
+      if (handleUnauthorized(err)) {
+        return;
+      }
+
       if (isApiError(err)) {
         if (err.status === 403) {
           setActionError("この操作を行う権限がありません");
@@ -79,6 +85,10 @@ export default function TaskComments({ taskId }: TaskCommentsProps) {
       await deleteTaskComment(commentId);
       await mutate();
     } catch (err: unknown) {
+      if (handleUnauthorized(err)) {
+        return;
+      }
+
       if (isApiError(err)) {
         if (err.status === 403) {
           setActionError("この操作を行う権限がありません");
@@ -116,6 +126,10 @@ export default function TaskComments({ taskId }: TaskCommentsProps) {
       setEditingContent("");
       await mutate();
     } catch (err: unknown) {
+      if (handleUnauthorized(err)) {
+        return;
+      }
+
       if (isApiError(err)) {
         if (err.status === 403) {
           setActionError("この操作を行う権限がありません");

@@ -4,6 +4,7 @@
 import Loading from "@/components/ui/Loading";
 import { isApiError } from "@/lib/api/errors";
 import { createProject } from "@/lib/api/projects";
+import { useAuthGuard } from "@/lib/hooks/useAuthGuard";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
@@ -13,6 +14,7 @@ export default function ProjectCreatePage() {
   const [description, setDescription] = useState("");
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
+  const { user, isLoading: authLoading, handleUnauthorized } = useAuthGuard();
 
   const handleSubmit = async (e: React.SyntheticEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -23,6 +25,10 @@ export default function ProjectCreatePage() {
       await createProject({ name, description });
       router.push("/projects");
     } catch (err: unknown) {
+      if (handleUnauthorized(err)) {
+        return;
+      }
+
       if (isApiError(err)) {
         if (err.status === 403) {
           setSubmitError("権限がありません");
@@ -40,6 +46,14 @@ export default function ProjectCreatePage() {
       setLoading(false);
     }
   };
+
+  if (authLoading) {
+    return <Loading message="認証情報を確認中..." />;
+  }
+
+  if (!user) {
+    return null;
+  }
 
   if (loading) return <Loading message="プロジェクト作成中..." />;
 

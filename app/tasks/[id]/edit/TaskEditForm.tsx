@@ -1,5 +1,4 @@
 // [id]/edit/TaskEditForm.tsx
-
 "use client";
 
 import { TaskAttachments } from "@/components/tasks/TaskAttachments";
@@ -8,6 +7,7 @@ import Loading from "@/components/ui/Loading";
 import { isApiError } from "@/lib/api/errors";
 import { getOrganizationMembers } from "@/lib/api/organizationMembers";
 import { getTask, updateTask } from "@/lib/api/tasks";
+import { useAuthGuard } from "@/lib/hooks/useAuthGuard";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import useSWR from "swr";
@@ -17,14 +17,23 @@ type Props = {
 };
 
 export default function TaskEditForm({ taskId }: Props) {
-  const { data, error, isLoading } = useSWR(`/api/tasks/${taskId}`, () =>
-    getTask(Number(taskId)),
+  const router = useRouter();
+
+  const {
+    user,
+    isLoading: authLoading,
+    isAuthenticated,
+    handleUnauthorized,
+  } = useAuthGuard();
+
+  const { data, error, isLoading } = useSWR(
+    isAuthenticated ? `/api/tasks/${taskId}` : null,
+    () => getTask(Number(taskId)),
   );
 
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [dueDate, setDueDate] = useState("");
-  const router = useRouter();
   const [saving, setSaving] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [assignedUserId, setAssignedUserId] = useState("");
@@ -33,7 +42,10 @@ export default function TaskEditForm({ taskId }: Props) {
     data: memberData,
     error: memberError,
     isLoading: memberLoading,
-  } = useSWR("/api/organization-members", getOrganizationMembers);
+  } = useSWR(
+    isAuthenticated ? "/api/organization-members" : null,
+    getOrganizationMembers,
+  );
 
   const members = memberData?.data ?? [];
 
@@ -65,6 +77,10 @@ export default function TaskEditForm({ taskId }: Props) {
 
       router.push(`/tasks/${taskId}`);
     } catch (err: unknown) {
+      if (handleUnauthorized(err)) {
+        return;
+      }
+
       if (isApiError(err)) {
         if (err.status === 403) {
           setSubmitError("権限がありません");
@@ -82,6 +98,14 @@ export default function TaskEditForm({ taskId }: Props) {
       setSaving(false);
     }
   };
+
+  if (authLoading) {
+    return <Loading message="認証情報を確認中..." />;
+  }
+
+  if (!user) {
+    return null;
+  }
 
   if (isLoading || memberLoading) {
     return <Loading message="タスク編集情報を読み込み中..." />;

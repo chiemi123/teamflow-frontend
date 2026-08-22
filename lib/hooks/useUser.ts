@@ -13,7 +13,8 @@ export const useUser = () => {
     getMe,
     {
       shouldRetryOnError: false,
-      revalidateOnFocus: false, // フォーカス戻ったときに再リクエストしない
+      revalidateOnFocus: true, // フォーカス戻ったときに再リクエストしない
+      revalidateOnMount: true,
     },
   );
 
@@ -23,6 +24,7 @@ export const useUser = () => {
     user: isUnauthenticated ? null : data ? (data.data ?? null) : undefined,
     isLoading,
     isAuthenticated: !!data && !isUnauthenticated,
+    isUnauthenticated,
     errorMessage: error ? "ユーザー情報の取得に失敗しました。" : null,
     mutate,
   };

@@ -1,29 +1,18 @@
 // app/projects/page.tsx
+
 "use client";
 
 import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
 import Loading from "@/components/ui/Loading";
 import { getProjects } from "@/lib/api/projects";
-import { useUser } from "@/lib/hooks/useUser";
+import { useAuthGuard } from "@/lib/hooks/useAuthGuard";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import useSWR from "swr";
 import ProjectCard from "./components/ProjectCard";
 
 export default function ProjectsPage() {
-  const router = useRouter();
-  const { user, isLoading, isAuthenticated } = useUser();
-
-  useEffect(() => {
-    if (isLoading) return;
-
-    // 認証されていない場合、ログインページにリダイレクト
-    if (!isAuthenticated) {
-      router.push("/login");
-    }
-  }, [isAuthenticated, isLoading, router]);
+  const { user, isLoading, isAuthenticated } = useAuthGuard();
 
   // プロジェクトデータを取得
   const {

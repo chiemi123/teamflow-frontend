@@ -9,6 +9,7 @@ import {
   fetchUserNotifications,
   markNotificationAsRead,
 } from "@/lib/api/notifications";
+import { useAuthGuard } from "@/lib/hooks/useAuthGuard";
 import type { UserNotification } from "@/types/userNotification";
 import { useState } from "react";
 import useSWR from "swr";
@@ -59,13 +60,24 @@ function formatDate(value: string) {
 
 export default function NotificationList() {
   const {
+    user,
+    isLoading: authLoading,
+    isAuthenticated,
+    handleUnauthorized,
+  } = useAuthGuard();
+
+  const {
     data: notifications,
     error,
     isLoading,
     mutate,
-  } = useSWR("/api/user-notifications", fetchUserNotifications, {
-    shouldRetryOnError: false,
-  });
+  } = useSWR(
+    isAuthenticated ? "/api/user-notifications" : null,
+    fetchUserNotifications,
+    {
+      shouldRetryOnError: false,
+    },
+  );
 
   const [actionError, setActionError] = useState("");
 
@@ -76,6 +88,10 @@ export default function NotificationList() {
       await markNotificationAsRead(id);
       await mutate();
     } catch (err: unknown) {
+      if (handleUnauthorized(err)) {
+        return;
+      }
+
       if (isApiError(err)) {
         if (err.status === 403) {
           setActionError("この操作を行う権限がありません");
@@ -89,6 +105,14 @@ export default function NotificationList() {
       }
     }
   };
+
+  if (authLoading) {
+    return <Loading message="認証情報を確認中..." />;
+  }
+
+  if (!user) {
+    return null;
+  }
 
   if (isLoading) {
     return <Loading />;

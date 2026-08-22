@@ -1,5 +1,4 @@
 // app/tasks/create/page.tsx
-
 "use client";
 
 import ErrorState from "@/components/ui/ErrorState";
@@ -8,6 +7,7 @@ import { isApiError } from "@/lib/api/errors";
 import { getOrganizationMembers } from "@/lib/api/organizationMembers";
 import { getProjects } from "@/lib/api/projects";
 import { createTask } from "@/lib/api/tasks";
+import { useAuthGuard } from "@/lib/hooks/useAuthGuard";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 import useSWR from "swr";
@@ -21,12 +21,18 @@ export default function TaskCreatePage() {
   const [loading, setLoading] = useState(false);
   const [submitError, setSubmitError] = useState("");
   const [assignedUserId, setAssignedUserId] = useState("");
+  const {
+    user,
+    isLoading: authLoading,
+    isAuthenticated,
+    handleUnauthorized,
+  } = useAuthGuard();
 
   const {
     data: projectData,
     error: projectError,
     isLoading: projectLoading,
-  } = useSWR("/api/projects", getProjects);
+  } = useSWR(isAuthenticated ? "/api/projects" : null, getProjects);
 
   const projects = projectData?.data ?? [];
 
@@ -34,7 +40,10 @@ export default function TaskCreatePage() {
     data: memberData,
     error: memberError,
     isLoading: memberLoading,
-  } = useSWR("/api/organization-members", getOrganizationMembers);
+  } = useSWR(
+    isAuthenticated ? "/api/organization-members" : null,
+    getOrganizationMembers,
+  );
 
   const members = memberData?.data ?? [];
 
@@ -53,6 +62,10 @@ export default function TaskCreatePage() {
 
       router.push("/tasks");
     } catch (err: unknown) {
+      if (handleUnauthorized(err)) {
+        return;
+      }
+
       if (isApiError(err)) {
         if (err.status === 403) {
           setSubmitError("権限がありません");
@@ -70,6 +83,14 @@ export default function TaskCreatePage() {
       setLoading(false);
     }
   };
+
+  if (authLoading) {
+    return <Loading message="認証情報を確認中..." />;
+  }
+
+  if (!user) {
+    return null;
+  }
 
   if (projectLoading || memberLoading) {
     return <Loading message="タスク作成情報を読み込み中..." />;

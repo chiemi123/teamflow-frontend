@@ -5,24 +5,13 @@ import EmptyState from "@/components/ui/EmptyState";
 import ErrorState from "@/components/ui/ErrorState";
 import Loading from "@/components/ui/Loading";
 import { getTasks, getTaskStatuses } from "@/lib/api/tasks";
-import { useUser } from "@/lib/hooks/useUser";
+import { useAuthGuard } from "@/lib/hooks/useAuthGuard";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useEffect } from "react";
 import useSWR from "swr";
 import TaskCard from "./components/TaskCard";
 
 export default function TasksPage() {
-  const router = useRouter();
-  const { user, isLoading, isAuthenticated } = useUser();
-
-  useEffect(() => {
-    if (isLoading) return;
-
-    if (!isAuthenticated) {
-      router.push("/login");
-    }
-  }, [isAuthenticated, isLoading, router]);
+  const { user, isLoading, isAuthenticated } = useAuthGuard();
 
   const {
     data,
